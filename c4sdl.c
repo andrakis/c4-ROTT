@@ -35,7 +35,11 @@ static SDL_version linked = { 1, 2, 15 };
 const SDL_version *SDL_Linked_Version(void) { return &linked; }
 
 // ---- time ----
-Uint32 SDL_GetTicks(void) { return rott_ticks(); }
+// The sound (rott-snd.c) is polled whenever the game reads the clock,
+// which its waits do over and over, reads its input, which a menu
+// waiting for a key does and nothing else, and with every frame
+void rott_snd_poll(void);
+Uint32 SDL_GetTicks(void) { rott_snd_poll(); return rott_ticks(); }
 void   SDL_Delay(Uint32 ms) { rott_delay(ms); }
 
 // ---- the display ----
@@ -123,6 +127,7 @@ void SDL_UpdateRect(SDL_Surface *s, Sint32 x, Sint32 y, Uint32 w, Uint32 h) {
 	if (!on) return;
 	gui_blit8(0, 0, s->w, s->h, (char *) s->pixels, s->pitch, (int *) palette, W, H);
 	gui_show();
+	rott_snd_poll();
 }
 
 // nearest-pixel, the only kind the game asks for (modexlib.c's stretch)
@@ -265,6 +270,7 @@ static void gather(void) {
 }
 
 int SDL_PollEvent(SDL_Event *ev) {
+	rott_snd_poll();          // a menu waiting for a key reads no clock
 	gather();
 	if (qh == qt) return 0;
 	if (ev) {

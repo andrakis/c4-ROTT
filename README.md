@@ -3,7 +3,9 @@
 Rise of the Triad: Dark War (Apogee, 1995), as icculus.org's port has it.
 It is compiled by c4lc and played on libjs's whole display, from the
 keyboard, with the mouse turning the player. The shareware episode, "The
-HUNT Begins", ships with it. There is no sound yet (below).
+HUNT Begins", ships with it. Its music is the DOS game's own MIDI player
+and AdLib driver on the sound card's OPL, and its effects play on the
+card's sample channels (Sound, below).
 
 [docs/ports-feasibility.md](../../docs/ports-feasibility.md) (§7) says why
 icculus's port is the one to build on. The DOS release has Watcom's
@@ -33,8 +35,9 @@ SDL's relative motion did.
 - **The game:** [icculus.org's port](https://icculus.org/rott/) of the
   1.4 source Apogee released in 2002, version 1.1.2, under the GNU GPL v2
   (`COPYING`). `README.icculus` is its own README. Its game units and
-  headers are here; its `audiolib`, Mac and Visual Studio directories are
-  not.
+  headers are here, and of its `audiolib` (Apogee's sound library, which
+  the DOS release linked and icculus's port does not build) the five
+  units the music needs. Its Mac and Visual Studio directories are not.
 - **The data:** Apogee's shareware package, `data/1rott13.zip`,
   unmodified (`data/README.md`). `tools/rottdata.py` reads the game's
   files out of it for the disks.
@@ -45,11 +48,12 @@ SDL's relative motion did.
 |---|---|
 | icculus's units and headers | the game, with the changes below |
 | `c4/SDL.h`, `c4sdl.c` | the slice of SDL 1.2 the game calls: its 8-bit screen and palette sent as `GUI_BLIT8`, which the host scales to 640x480; the keyboard as SDL's keysyms; the mouse |
-| `rott-snd.c` | the game's FX_ and MUSIC_ interfaces, in place of `fx_man.c` and `dukemusc.c` (SDL_mixer), which are not built: for now there is no card |
+| `rott-snd.c` | the game's FX_ and MUSIC_ interfaces on libjs's sound card, in place of `fx_man.c` and `dukemusc.c` (SDL_mixer), which are not built; and the poll that runs the music |
+| `midi.c`, `al_midi.c`, `gmtimbre.c`, `ll_man.c`, `usrhooks.c` and their headers | five units of Apogee's `audiolib`: the MIDI player, the AdLib driver, its General MIDI timbre bank, and what they use |
 | `rott-sum.c` | what every platform shares: `--timedemo N`, each frame shown checksummed with its palette, on a virtual clock |
 | `rott-c4ix.c`, `rott-bare.c` | whether the display has to be asked for, and where the game starts |
 | `rott-host.c` | the platform on a host, built with gcc: no display and no sound, the reference for `make test-rott` |
-| `c4/` | `SDL.h`, a `signal.h`, and the `stdint.h`, `stdbool.h` and `inttypes.h` C4IX's libc lacks |
+| `c4/` | `SDL.h`, a `signal.h`, and the `stdint.h`, `stdbool.h` and `inttypes.h` C4IX's libc lacks; and for `audiolib`, a `conio.h` whose port writes go to the card's OPL, and the DOS headers (`dos.h`, `dpmi.h`, `interrup.h`, `blaster.h`, `user.h`) as next to nothing |
 | `tools/rottdata.py`, `data/` | the package and what reads it |
 
 ## The changes to icculus's port
@@ -113,10 +117,10 @@ Each is under `#ifdef C4ROTT`. Everything else is the port's own code.
   All four must print the same frames:
 
   ```
-  timedemo: demo 1: 1613 frames, checksum ef4d0701
-  timedemo: demo 2: 880 frames, checksum b3aac541
+  timedemo: demo 1: 1613 frames, checksum 880c2201
+  timedemo: demo 2: 880 frames, checksum b4a61d41
   timedemo: demo 3: 1081 frames, checksum 6ae88033
-  timedemo: demo 4: 609 frames, checksum 3c4e9b33
+  timedemo: demo 4: 609 frames, checksum 3b083b33
   ```
 
   On the bare machine, under libjs's `cli.js`, the four take 49, 24, 31
@@ -128,10 +132,51 @@ In the page, on the machine this was measured on, the first level played
 at about 14 frames a second on the bare machine (`?system=rott`, paced at
 400 MHz, the host managing about 70M instructions a second).
 
-## Sound, next
+## Sound
 
-The DOS game played its music through Apogee's own AdLib MIDI driver,
-`audiolib`'s `al_midi.c` and `midi.c` with the GM timbre bank. libjs's
-sound card is an OPL, so that driver can drive it as it drove the card.
-The effects go on the card's eight sample channels, as Doom's and
-Tyrian's do. Both are to come, in `rott-snd.c`.
+`rott-snd.c` puts the game's two sound interfaces, Apogee's `FX_` and
+`MUSIC_`, on libjs's sound card (`libjs/guest/snd.h`). With no card, the
+game is told so and plays silent, as on a DOS machine without one.
+
+- **Music** is the DOS game's own. `audiolib`'s MIDI player (`midi.c`)
+  plays the WAD's songs through its AdLib driver (`al_midi.c`) with the
+  General MIDI timbre bank (`gmtimbre.c`), as the game did on an AdLib.
+  - The card's OPL stands where the AdLib was: the driver's writes to
+    ports 0x388 and 0x389 become the card's register writes
+    (`rott_outp`).
+  - Apogee's extended MIDI picks each song's AdLib tracks.
+  - On DOS the player ran from the timer interrupt, through `audiolib`'s
+    task manager. Here the task manager is a table in `rott-snd.c`, and
+    `rott_snd_poll()` runs it. `c4sdl.c` calls the poll whenever the
+    game reads the clock, which its waits do over and over, whenever it
+    reads its input, which a menu waiting for a key does and nothing
+    else, and with every frame.
+  - The poll runs the player a tick at a time, with `snd_wait` between
+    ticks, so each write is stamped with the stream's time, until the
+    stream is a quarter of a second ahead. Music then plays evenly however
+    unevenly the game runs. When a level is loading, the card brings the
+    stream up to now, and the music waits rather than rushing.
+  - Fades are `music.c`'s, on the same task manager.
+- **Effects** are the WAD's VOC and WAV lumps, played as they are on the
+  card's eight channels of 8-bit samples.
+  - A sound's pitch offset, in cents, moves its rate, as `audiolib`'s
+    `PITCH_GetScale` did.
+  - A positioned sound is panned by angle and distance with
+    `multivoc.c`'s table: 32 angles, and the far ear falls to nothing
+    over a quarter turn.
+  - A finished sound is let go, and the game is told by its callback, at
+    the next poll.
+  - The priorities decide who gets a channel when all eight are playing.
+
+The `C4ROTT` changes in `audiolib` are four:
+- `AL_Init` asks no Sound Blaster which OPL it has;
+- `MIDI_Reset` does not wait a twenty-fourth of a second on DOS's clock;
+- `_MIDI_InitEMIDI` picks the AdLib's tracks;
+- `_midi.h` declares the service routine static, as `midi.c` defines it,
+  which gcc insists on.
+
+`--timedemo` with `NOSOUND` starts neither interface, and gcc's build
+never touches the card. With music on, a demo is timed differently.
+The timedemo clock moves a millisecond each time it is read, and
+between songs the game reads it in a loop until the fade is done
+(`MU_FadeToSong`). Demo 4 then shows 582 frames, not 609.
