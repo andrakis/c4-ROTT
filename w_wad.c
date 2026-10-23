@@ -140,7 +140,13 @@ void W_AddFile (char *_filename)
                 header.numlumps = IntelLong(LONG(header.numlumps));
                 header.infotableofs = IntelLong(LONG(header.infotableofs));
                 length = header.numlumps*sizeof(filelump_t);
+#ifdef C4ROTT
+                // c4lc has no alloca: the directory is read once a file,
+                // and kept
+                fileinfo = malloc (length);
+#else
                 fileinfo = alloca (length);
+#endif
                 if (!fileinfo)
                    Error ("Wad file could not allocate header info on stack");
                 lseek (handle, header.infotableofs, SEEK_SET);

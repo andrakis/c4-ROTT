@@ -6,8 +6,15 @@
 
 //typedef unsigned char byte;
 
+#ifdef C4ROTT
+// c4: the original 320x200, a fifth of the work of 640x480; a config can
+// still ask for more (ScreenWidth, ScreenHeight in config.rot)
+int iGLOBAL_SCREENWIDTH  = 320;
+int iGLOBAL_SCREENHEIGHT = 200;
+#else
 int iGLOBAL_SCREENWIDTH  = 640;//bna val 800
 int iGLOBAL_SCREENHEIGHT = 480;//bna val 600
+#endif
 int iGLOBAL_SCREENBWIDE ;
 int iG_SCREENWIDTH;// default screen width in bytes
 

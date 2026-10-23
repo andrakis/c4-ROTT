@@ -4114,7 +4114,14 @@ void DrawBackground ( byte * bkgnd )
 //   int plane;
    int size;
 
+#ifdef C4ROTT
+   // the screen's rows, not Mode X's 400: at 320x200 that copied 128000
+   // bytes into (and out of) a screen of 64000, over whatever the heap
+   // put after it -- libjs's display ring, in the credits
+   size=linewidth*iGLOBAL_SCREENHEIGHT;
+#else
    size=linewidth*400;
+#endif
 
 #ifdef DOS
    for (plane=0;plane<4;plane++)
@@ -4138,7 +4145,14 @@ void PrepareBackground ( byte * bkgnd )
 //   int plane;
    int size;
 
+#ifdef C4ROTT
+   // the screen's rows, not Mode X's 400: at 320x200 that copied 128000
+   // bytes into (and out of) a screen of 64000, over whatever the heap
+   // put after it -- libjs's display ring, in the credits
+   size=linewidth*iGLOBAL_SCREENHEIGHT;
+#else
    size=linewidth*400;
+#endif
 
 #ifdef DOS
    for (plane=0;plane<4;plane++)

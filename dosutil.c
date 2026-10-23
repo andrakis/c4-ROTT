@@ -125,7 +125,7 @@ extern char ApogeePath[256];
 
 int setup_homedir (void)
 {
-#if PLATFORM_UNIX && !defined(__MINGW32__)
+#if PLATFORM_UNIX && !defined(__MINGW32__) && !defined(C4ROTT)
 	int err;
 
 	/* try to create the root directory */
@@ -197,7 +197,7 @@ void DisplayTextSplash(byte *text, int l)
 	printf ("\033[m");
 }
 
-#if !defined(__CYGWIN__) && !defined(__MINGW32__)
+#if !defined(__CYGWIN__) && !defined(__MINGW32__) && !defined(C4ROTT)
 #include <execinfo.h>
 
 void print_stack (int level)

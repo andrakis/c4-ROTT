@@ -176,8 +176,18 @@ extern void	ReadDelay(long delay);
 extern void RecordDemoQuery ( void );
 
 
+#ifdef C4ROTT
+// the port's (rott-sum.c): --timedemo N and --trace off the command line
+void rott_start(int *argc, char **argv);
+int  rott_timedemo(void);
+static int rott_titles;
+#endif
+
 int main (int argc, char *argv[])
 {
+#ifdef C4ROTT
+   rott_start(&argc, argv);
+#endif
     char *macwd;
 #ifndef DOS
 	_argc = argc;
@@ -395,6 +405,11 @@ int main (int argc, char *argv[])
 
    BATTLE_SetOptions( &BATTLE_Options[ battle_StandAloneGame ] );
 
+#ifdef C4ROTT
+   // a timedemo goes straight to its demo (GameLoop)
+   if (rott_timedemo())
+      NoWait = true;
+#endif
    if (turbo || tedlevel)
 		{
       if (modemgame == true)
@@ -1152,9 +1167,21 @@ void GameLoop (void)
 		switch (playstate)
 		   {
          case ex_titles:
-		 
+
             BATTLE_Shutdown();
             MU_StartSong(song_title);
+#ifdef C4ROTT
+            // --timedemo N (rott-sum.c): the demo at once, and when it has
+            // ended, the end
+            if (rott_timedemo())
+               {
+               if (rott_titles++ > 0)
+                  QuitGame();
+               ingame = true;
+               LoadDemo (rott_timedemo());
+               break;
+               }
+#endif
 			EnableScreenStretch();
             if ((NoWait==false)&&(!modemgame))
                {

@@ -46,8 +46,17 @@ static int sndindex = 0;
 //
 //****************************************************************************
 
+#ifdef C4ROTT
+int rott_timedemo(void);   // rott-sum.c
+#endif
+
 int GetRandomSeed ( void )
 {
+#ifdef C4ROTT
+   // a timedemo is the same run every time, so its seed is too
+   if (rott_timedemo())
+      return 0;
+#endif
    return ( time (NULL) % (SIZE_OF_RANDOM_TABLE) );
 }
 

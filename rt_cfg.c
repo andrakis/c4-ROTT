@@ -1071,6 +1071,12 @@ void CheckVendor (void)
    byte * vendor;
    char filename[ 128 ];
 
+#ifdef C4ROTT
+   // The package's VENDOR.DOC is on the disk beside the game, as it ships
+   // (data/README.md). Writing it back out of the WAD needs a disk that
+   // takes writes, which the bare machine's and the page's do not.
+   return;
+#endif
    GetPathFromEnvironment( filename, ApogeePath, VENDORDOC );
    if (access (filename, F_OK) == 0)
       {
@@ -1195,7 +1201,11 @@ void WriteBattleConfig
 
    if ( file == -1 )
       {
+#ifdef C4ROTT
+      return;   // a disk that takes no writes: the settings are not kept
+#else
       Error( "Error opening %s: %s", filename, strerror( errno ) );
+#endif
       }
 
    // Write out BATTLECONFIG header
@@ -1553,7 +1563,11 @@ void WriteSoundConfig
       S_IREAD | S_IWRITE);
 
    if (file == -1)
+#ifdef C4ROTT
+      return;   // a disk that takes no writes: the settings are not kept
+#else
       Error ("Error opening %s: %s", filename, strerror(errno));
+#endif
 
    // Write out ROTTSOUND header
 
@@ -1722,7 +1736,11 @@ void WriteConfig (void)
    , S_IREAD | S_IWRITE);
 
    if (file == -1)
+#ifdef C4ROTT
+      return;   // a disk that takes no writes: the settings are not kept
+#else
       Error ("Error opening %s: %s",filename,strerror(errno));
+#endif
 
    // Write out ROTTCONFIG header
 

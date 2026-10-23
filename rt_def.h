@@ -44,7 +44,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //#define alloca(x) _alloca(x)
 #define access(x, y) _access(x, y)
 #define F_OK  0
-#elif (defined __GNUC__)
+#elif (defined __GNUC__) || (defined C4ROTT)
 #define __int64 long long
 #else
 #error please define your platform.

@@ -641,6 +641,13 @@ int SafeOpenAppend (char *_filename)
 	handle = open(filename,O_RDWR | O_BINARY | O_CREAT | O_APPEND
 	, S_IREAD | S_IWRITE);
 
+#ifdef C4ROTT
+	// The bare machine's disk, C4DOS's and the page's take no writes:
+	// the config and saved games are then not kept, and the game goes on
+	// (SafeWrite skips a handle of -1). C4IX's take them.
+	if (handle == -1)
+		return -1;
+#endif
 	if (handle == -1)
 		Error ("Error opening for append %s: %s",filename,strerror(errno));
 
@@ -658,6 +665,13 @@ int SafeOpenWrite (char *_filename)
 	handle = open(filename,O_RDWR | O_BINARY | O_CREAT | O_TRUNC
 	, S_IREAD | S_IWRITE);
 
+#ifdef C4ROTT
+	// The bare machine's disk, C4DOS's and the page's take no writes:
+	// the config and saved games are then not kept, and the game goes on
+	// (SafeWrite skips a handle of -1). C4IX's take them.
+	if (handle == -1)
+		return -1;
+#endif
 	if (handle == -1)
 		Error ("Error opening %s: %s",filename,strerror(errno));
 
@@ -700,6 +714,10 @@ void SafeWrite (int handle, void *buffer, long count)
 {
 	unsigned	iocount;
 
+#ifdef C4ROTT
+	if (handle < 0)
+		return;
+#endif
 	while (count)
 	{
 		iocount = count > 0x8000 ? 0x8000 : count;
@@ -714,6 +732,10 @@ void SafeWriteString (int handle, char * buffer)
 {
 	unsigned	iocount;
 
+#ifdef C4ROTT
+	if (handle < 0)
+		return;
+#endif
    iocount=strlen(buffer);
 	if (write (handle,buffer,iocount) != (int)iocount)
 			Error ("File write string failure writing %s\n",buffer);

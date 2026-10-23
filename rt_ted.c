@@ -1188,7 +1188,15 @@ void PreCache( void )
 			{
          dummy=W_CacheLumpNum(cachelist[i].lump,cachelist[i].cachelevel, CvtForType(cachelist[i].type), 1);
          total+=W_LumpLength(cachelist[i].lump);
+         #ifdef C4ROTT
+         // the loading bar's measure walks every block in the zone: once
+         // a lump made loading a level quadratic, minutes on c4, so every
+         // 64th lump (from the first) and the last
+         if ((i & 63) == 1 || i == cacheindex - 1)
+            newheap=Z_UsedHeap();
+#else
          newheap=Z_UsedHeap();
+#endif
 			currentmem=(newheap*MAXLEDS)/maxheapsize;
          while (lastmem<=currentmem)
             {//SetTextMode (  );

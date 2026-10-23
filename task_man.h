@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
    module: TASK_MAN.C
 
    author: James R. Dose
+   phone:  (214)-271-1365 Ext #221
    date:   July 25, 1994
 
    Public header for TASK_MAN.C, a low level timer task scheduler.

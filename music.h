@@ -33,10 +33,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "sndcards.h"
 
-#ifndef PLAT_DOS
-#define cdecl
-#endif
-
 extern int MUSIC_ErrorCode;
 
 enum MUSIC_ERRORS
@@ -80,6 +76,10 @@ void  MUSIC_Continue( void );
 void  MUSIC_Pause( void );
 int   MUSIC_StopSong( void );
 int   MUSIC_PlaySong( unsigned char *song, int loopflag );
+
+// ROTT Special - SBF
+int   MUSIC_PlaySongROTT(unsigned char *song, int size, int loopflag);
+
 void  MUSIC_SetContext( int context );
 int   MUSIC_GetContext( void );
 void  MUSIC_SetSongTick( unsigned long PositionInTicks );

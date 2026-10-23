@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
    module: SNDCARDS.H
 
    author: James R. Dose
+   phone:  (214)-271-1365 Ext #221
    date:   March 31, 1994
 
    Contains enumerated type definitions for sound cards.
@@ -31,12 +32,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #ifndef __SNDCARDS_H
 #define __SNDCARDS_H
 
-#define ASS_VERSION_STRING "1.12"
+#define ASS_VERSION_STRING "1.04"
 
 typedef enum
    {
 //   ASS_NoSound,
    SoundBlaster,
+#ifdef DOS
    ProAudioSpectrum,
    SoundMan16,
    Adlib,
@@ -44,11 +46,14 @@ typedef enum
    SoundCanvas,
    Awe32,
    WaveBlaster,
+#endif
    SoundScape,
    UltraSound,
+#ifdef DOS
    SoundSource,
    TandySoundSource,
    PC,
+#endif
    NumSoundCards
    } soundcardnames;
 

@@ -75,6 +75,15 @@ void ProfileMachine ( void )
    profiletics = (endtime-time)>>2;
    if (profiletics<1)
       profiletics=1;
+#ifdef C4ROTT
+   // Every frame of a cinematic moves it on this many tics, measured once,
+   // here. Paced, with the machine slower than its clock, libjs moves the
+   // clock on to keep the wall's time (realtime), and four frames could
+   // measure hundreds: a frame then took minutes, and a key went unseen.
+   // A PC of the day measured a few.
+   if (profiletics>8)
+      profiletics=8;
+#endif
 }
 
 /*

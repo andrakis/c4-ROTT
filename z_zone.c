@@ -124,6 +124,11 @@ memzone_t *Z_AllocateZone (int size)
         if (!header)
                 Error ("Z_AllocateZone: Couldn't malloc %zd bytes avail=%d\n",
                 size+sizeof(memzone_t), Z_AvailHeap());
+#ifdef C4ROTT
+        // zeroed: what the game reads before it writes is then the same on
+        // every machine and every build, as the timedemo needs
+        memset (header, 0, size+sizeof(memzone_t));
+#endif
         header->size = size;
         Z_ClearZone (header);
         return header;
