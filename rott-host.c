@@ -17,3 +17,8 @@ uint32_t plat_ms(void) {
 void plat_sleep(uint32_t ms) { usleep(ms * 1000); }
 // what gui.c asks the machine: here, nothing is fitted
 int __c4_info(void) { return 0; }
+// no window: the display or nothing
+int rott_win_open(int w, int h) { (void) w; (void) h; return 0; }
+void rott_win_draw(uint8_t *pixels, int w, int h, int pitch, uint32_t *palette) { (void) pixels; (void) w; (void) h; (void) pitch; (void) palette; }
+int rott_win_poll(int *ev) { (void) ev; return 0; }
+void rott_win_close(void) {}

@@ -29,7 +29,9 @@ static void report(void) {
 	printf("timedemo: demo %d: %d frames, checksum %08x\n", demo, frames, (unsigned) sum);
 }
 
-// takes --timedemo N and --trace off the command line; main's first act
+static int windowing;           // --window: in the Terminal's window (rott-c4ix.c)
+
+// takes --timedemo N, --trace and --window off the command line; main's first act
 void rott_home(void);           // rott-c4ix.c, rott-bare.c, rott-host.c
 
 void rott_start(int *argc, char **argv) {
@@ -38,6 +40,13 @@ void rott_start(int *argc, char **argv) {
 	for (i = 1; i < *argc; i++) {
 		if (strcmp(argv[i], "--trace") != 0) continue;
 		tracing = 1;
+		for (j = i; j + 1 <= *argc; j++) argv[j] = argv[j + 1];
+		*argc = *argc - 1;
+		break;
+	}
+	for (i = 1; i < *argc; i++) {
+		if (strcmp(argv[i], "--window") != 0) continue;
+		windowing = 1;
 		for (j = i; j + 1 <= *argc; j++) argv[j] = argv[j + 1];
 		*argc = *argc - 1;
 		break;
@@ -55,6 +64,7 @@ void rott_start(int *argc, char **argv) {
 }
 
 int rott_headless(void) { return timing; }
+int rott_windowed(void) { return windowing; }
 int rott_timedemo(void) { return timing ? demo : 0; }
 
 void rott_frame(uint8_t *pixels, int w, int h, int pitch, uint32_t *palette) {

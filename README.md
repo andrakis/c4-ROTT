@@ -18,6 +18,7 @@ was M13 ([docs/c4lc-design.md](../../docs/c4lc-design.md) 14.12).
 | where | how | platform |
 |---|---|---|
 | C4IX, the whole display | `rott`, or Go > Rise of the Triad; the desktop gives way until it ends (`include/display.h`) | `c4sdl.c`, `rott-c4ix.c` |
+| C4IX, a window | `rott --window` from a Terminal, which becomes the game's window (`include/window.h`), as `wolf3d --window`, `doom -window` and `tyrian --window` play; also when a program that does not give way has the display | `c4sdl.c`, `rott-c4ix.c` |
 | C4DOS | `ROTT` at the `A>` prompt; the page's `?system=c4dos` | `c4sdl.c`, `rott-bare.c` |
 | the bare machine | `rott.c4r` as the machine's image; the page's `?system=rott` | `c4sdl.c`, `rott-bare.c` |
 
@@ -28,7 +29,8 @@ files are on the games' disk beside it.
 
 The mouse is locked to the display from a click on it, and Esc lets it go
 (docs/libjs-design.md, `GUI_PTR_LOCK`). Its motion turns the player as
-SDL's relative motion did.
+SDL's relative motion did. In a window the game takes only the keys, as
+the other windowed games do.
 
 ## Where it comes from
 
@@ -50,8 +52,8 @@ SDL's relative motion did.
 | `c4/SDL.h`, `c4sdl.c` | the slice of SDL 1.2 the game calls: its 8-bit screen and palette sent as `GUI_BLIT8`, which the host scales to 640x480; the keyboard as SDL's keysyms; the mouse |
 | `rott-snd.c` | the game's FX_ and MUSIC_ interfaces on libjs's sound card, in place of `fx_man.c` and `dukemusc.c` (SDL_mixer), which are not built; and the poll that runs the music |
 | `midi.c`, `al_midi.c`, `gmtimbre.c`, `ll_man.c`, `usrhooks.c` and their headers | five units of Apogee's `audiolib`: the MIDI player, the AdLib driver, its General MIDI timbre bank, and what they use |
-| `rott-sum.c` | what every platform shares: `--timedemo N`, each frame shown checksummed with its palette, on a virtual clock |
-| `rott-c4ix.c`, `rott-bare.c` | whether the display has to be asked for, and where the game starts |
+| `rott-sum.c` | what every platform shares: `--timedemo N` and `--window` off the command line, each frame shown checksummed with its palette, on a virtual clock |
+| `rott-c4ix.c`, `rott-bare.c` | whether the display has to be asked for, where the game starts, and on C4IX the window (`--window`) |
 | `rott-host.c` | the platform on a host, built with gcc: no display and no sound, the reference for `make test-rott` |
 | `c4/` | `SDL.h`, a `signal.h`, and the `stdint.h`, `stdbool.h` and `inttypes.h` C4IX's libc lacks; and for `audiolib`, a `conio.h` whose port writes go to the card's OPL, and the DOS headers (`dos.h`, `dpmi.h`, `interrup.h`, `blaster.h`, `user.h`) as next to nothing |
 | `tools/rottdata.py`, `data/` | the package and what reads it |

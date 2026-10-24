@@ -16,6 +16,11 @@
 int  rott_open_display(void);      // rott-c4ix.c, rott-bare.c, rott-host.c
 void rott_close_display(void);
 int  rott_headless(void);          // rott-sum.c: a timedemo
+int  rott_windowed(void);          //   and --window
+int  rott_win_open(int w, int h);  // rott-*.c: a window instead (C4IX's)
+void rott_win_draw(Uint8 *pixels, int w, int h, int pitch, Uint32 *palette);
+int  rott_win_poll(int *ev);
+void rott_win_close(void);
 void rott_frame(Uint8 *pixels, int w, int h, int pitch, Uint32 *palette);
 Uint32 rott_ticks(void);
 void   rott_delay(Uint32 ms);
@@ -44,6 +49,7 @@ void   SDL_Delay(Uint32 ms) { rott_delay(ms); }
 
 // ---- the display ----
 static int on;
+static int win;                    // in the Terminal's window instead (--window)
 static int *ring;
 static Uint32 palette[256];
 static SDL_Surface *screen;
@@ -60,7 +66,14 @@ static void close_display(void) {
 	rott_close_display();
 	on = 0;
 }
-void SDL_Quit(void) { close_display(); inited = 0; }
+static void close_win(void) { if (win) rott_win_close(); win = 0; }
+static int open_win(int w, int h) {
+	if (!rott_win_open(w, h)) return 0;
+	win = 1;
+	atexit(close_win);
+	return 1;
+}
+void SDL_Quit(void) { close_display(); close_win(); inited = 0; }
 
 SDL_Surface *SDL_CreateRGBSurface(Uint32 flags, int w, int h, int depth, Uint32 rm, Uint32 gm, Uint32 bm, Uint32 am) {
 	SDL_Surface *s;
@@ -86,7 +99,13 @@ SDL_Surface *SDL_SetVideoMode(int w, int h, int bpp, Uint32 flags) {
 	if (screen) SDL_FreeSurface(screen);
 	screen = SDL_CreateRGBSurface(flags, w, h, 8, 0, 0, 0, 0);
 	if (!screen) return NULL;
-	if (!on && !rott_headless() && rott_open_display()) {
+	if (on || win || rott_headless()) return screen;
+	if (rott_windowed() && open_win(w, h)) return screen;
+	if (!rott_open_display()) {
+		if (open_win(w, h)) printf("rott: a program has the display; playing in the window\n");
+		return screen;
+	}
+	{
 		if ((ring = (int *) malloc(RING)) && gui_attach(ring, RING, W, H)) {
 			gui_events(GUI_M_KEYS | GUI_M_MOVE | GUI_M_BUTTONS | GUI_M_WINDOW | GUI_M_REL);
 			// the mouse turns the player: locked to the display from a
@@ -124,6 +143,7 @@ void SDL_UpdateRect(SDL_Surface *s, Sint32 x, Sint32 y, Uint32 w, Uint32 h) {
 	(void) x; (void) y; (void) w; (void) h;
 	if (!s) return;
 	rott_frame((Uint8 *) s->pixels, s->w, s->h, s->pitch, palette);
+	if (win) { rott_win_draw((Uint8 *) s->pixels, s->w, s->h, s->pitch, palette); rott_snd_poll(); return; }
 	if (!on) return;
 	gui_blit8(0, 0, s->w, s->h, (char *) s->pixels, s->pitch, (int *) palette, W, H);
 	gui_show();
@@ -229,7 +249,7 @@ void SDL_SetEventFilter(SDL_EventFilter f) { filter = f; }
 static void gather(void) {
 	int ev[4];
 	SDL_Event e;
-	while (on && gui_poll(ev)) {
+	while (win ? rott_win_poll(ev) : on && gui_poll(ev)) {
 		memset(&e, 0, sizeof e);
 		if (ev[0] == GUI_EV_KEYDOWN || ev[0] == GUI_EV_KEYUP) {
 			e.type = ev[0] == GUI_EV_KEYDOWN ? SDL_KEYDOWN : SDL_KEYUP;
