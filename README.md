@@ -1,4 +1,4 @@
-# src/rott — Rise of the Triad on C4IX, C4DOS and the bare machine
+# games/rott — Rise of the Triad on C4IX, C4DOS and the bare machine
 
 Rise of the Triad: Dark War (Apogee, 1995), as icculus.org's port has it.
 It is compiled by c4lc and played on libjs's whole display, from the

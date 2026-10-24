@@ -1,0 +1,13 @@
+# Rise of the Triad (games/rott): the game and Apogee's
+# shareware episode, out of its package as it ships
+rott/:
+	rott.c4r: c4ix-rott.c4r
+	HUNTBGIN.WAD
+	HUNTBGIN.RTL
+	HUNTBGIN.RTC
+	REMOTE1.RTS
+	DEMO1_3.DMO
+	DEMO2_3.DMO
+	DEMO3_3.DMO
+	DEMO4_3.DMO
+	VENDOR.DOC
