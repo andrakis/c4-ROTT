@@ -74,7 +74,7 @@ test-rott: rott-data rott-host c4bb-images
 	   2>/dev/null > .rott_t/c4ix.out && \
 	 for w in bare dos c4ix; do grep '^timedemo' .rott_t/$$w.out | cmp -s .rott_t/host.txt - \
 	   || { echo "test-rott: $$w's frames differ:"; tail -5 .rott_t/$$w.out; exit 1; }; done && \
-	 { grep -A1 '^timedemo' .rott_t/dos.out | grep -q '^A>C4DOS version' \
+	 { grep -A1 '^timedemo' .rott_t/dos.out | grep -Eq '^A(:\\)?>C4DOS version' \
 	   || { echo "test-rott: C4DOS did not come back to its prompt:"; tail -5 .rott_t/dos.out; exit 1; }; } && \
 	 rm -rf .rott_t && echo "test-rott: OK"
 PHONY += test-rott
