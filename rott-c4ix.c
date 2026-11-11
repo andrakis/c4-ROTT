@@ -15,11 +15,19 @@
 
 // The game lives in /usr/games/rott, where its config and saved games go
 // too, and it starts there; and it asks to be served sooner and longer
-// than the programs beside it (nice, sched.c)
+// than the programs beside it (nice, sched.c). The registered game,
+// rottreg, whose data is the person's (rt_util.c, rott_data), keeps its
+// own in /usr/games/rott/darkwar: its saved games are not the
+// shareware's, nor its settings (as icculus.org's ~/.rott/darkwar).
 int unice(int id, int nice);            // libc4ix (c4ix_user.h)
 int chdir(char *path);
+int mkdir(char *path, int mode);
+extern int rott_registered;             // rt_main.c
 void rott_home(void) {
-	chdir("/usr/games/rott");
+	if (rott_registered) {
+		mkdir("/usr/games/rott/darkwar", 0755);
+		chdir("/usr/games/rott/darkwar");
+	} else chdir("/usr/games/rott");
 	unice(0, -5);
 }
 

@@ -114,8 +114,18 @@ char LevelName[80];
 static cachetype * cachelist;
 static word cacheindex;
 static boolean CachingStarted=false;
+#if defined(C4ROTT) && (SHAREWARE==0)
+// c4: DARKWAR.RTL and .RTC are the person's, in ROTT's folder or /home
+// (rt_util.c), found the first time they are wanted
+char *rott_data (char *name);
+static char * rott_maps;
+static char * rott_batt;
+#define ROTTMAPS (rott_maps ? rott_maps : (rott_maps = rott_data(STANDARDGAMELEVELS)))
+#define BATTMAPS (rott_batt ? rott_batt : (rott_batt = rott_data(STANDARDBATTLELEVELS)))
+#else
 static char * ROTTMAPS = STANDARDGAMELEVELS;
 static char * BATTMAPS = STANDARDBATTLELEVELS;
+#endif
 
 static char NormalWeaponTiles[ 10 ] =
    {

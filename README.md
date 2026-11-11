@@ -49,6 +49,43 @@ In grin's window the mouse turns the player too: a click on the window
 locks it to the display, as full screen, Esc lets it go, and its motion
 and buttons come to `c4sdl.c` in the display's 640x480.
 
+## The registered game: `rottreg`
+
+Rise of the Triad: The Dark War is the same source with `SHAREWARE` 0:
+other files (`DARKWAR.WAD`, `DARKWAR.RTL`, `DARKWAR.RTC`), and more
+weapons, players, sounds and actors, so its structures are not the
+shareware's. So it is a second program, `rottreg`, as Wolfenstein 3D's
+registered game is `wolf3d6`: `c4.mk` compiles the units again with
+`SHAREWARE=0` into `.rottreg/` (`rottreg-objs`), but for the eight whose
+preprocessed text is the same either way (`ROTT_SHARED`), and
+`c4-images.sh` links them with those and the platform's, as
+`/usr/games/rott/rottreg.c4r` and the games disk's `rottreg.c4r`.
+
+Its files are the person's own, so no disk has them. Add `DARKWAR.WAD`,
+`DARKWAR.RTL` and `DARKWAR.RTC` (and `REMOTE1.RTS`, or the shareware's is
+used) with the page's **Uploads** (c4's libjs/README.md), in the folder
+`/home/rott` (in `/home` itself they play too), then start it: Go > Games >
+Rise of the Triad (your files) on C4IX, `ROTTREG` under C4DOS, or the
+page's `?system=rottreg` on the bare machine. `rott_data` (`rt_util.c`)
+finds the folder with `DARKWAR.WAD`, its own first, then `/home`, and
+takes each file from there, as it is spelt or in lower case (the Uploads
+make names lower case):
+
+| | its folder | then |
+|---|---|---|
+| C4IX (it has a `/home`) | `/home/rott/` | `/home/` |
+| the bare machine, C4DOS | `rott/` at drive 0's root (`A:\ROTT`) | drive 0's root |
+
+Without `DARKWAR.WAD` it says what it wants and stops. Its demos are only
+the person's, from that folder: the shareware's `DEMO?_3.DMO` would not
+play the same, so where the folder is the disk's root, beside them, there
+are none. On C4IX it keeps its config and saved games in
+`/usr/games/rott/darkwar`, apart from the shareware's, whose saved games
+it cannot read (icculus.org's port keeps `~/.rott/darkwar` for the same
+reason); the page's bare `rottreg` has a store of its own. The WAD is read
+a lump at a time, into the same 9 MB zone, so it needs no more memory
+than the shareware.
+
 ## Where it comes from
 
 - **The game:** [icculus.org's port](https://icculus.org/rott/) of the

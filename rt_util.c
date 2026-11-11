@@ -694,6 +694,80 @@ int SafeOpenRead (char *_filename)
 	return handle;
 }
 
+#ifdef C4ROTT
+// c4: the person's own files. The registered game (rottreg: SHAREWARE 0,
+// README.md) plays DARKWAR.WAD, .RTL and .RTC, which the page's Uploads
+// put in ROTT's folder or in /home: on C4IX /home/rott and /home; on the
+// bare machine and under C4DOS, which have no /home, rott/ at the disk's
+// root and the root. (Not "/home/..." there: the disk finds a path it
+// does not have by its last part, at the root.) rott_dir is the first of
+// them with DARKWAR.WAD, and rott_data(NAME) is NAME there, as it is
+// spelt or in lower case (the Uploads make names lower case), or else
+// NAME as it was, the game's own (REMOTE1.RTS). Found by opening, not
+// stat(): on C4IX a name its filesystem does not have is the host's.
+char rott_dir[16];
+static int rott_dir_known;
+
+static int rott_opens (char *path)
+{
+	int h;
+	if ((h = open(path, O_RDONLY | O_BINARY)) < 0)
+		return 0;
+	close(h);
+	return 1;
+}
+
+// DIR + NAME, or DIR + name in lower case, where one opens; 0 if neither
+static char *rott_in (char *dir, char *name)
+{
+	char path[64];
+	int i;
+	if (strlen(dir) + strlen(name) >= sizeof(path))
+		return 0;
+	strcpy(path, dir);
+	strcat(path, name);
+	if (rott_opens(path))
+		return strdup(path);
+	for (i = strlen(dir); path[i]; i++)
+		path[i] = tolower(path[i]);
+	if (rott_opens(path))
+		return strdup(path);
+	return 0;
+}
+
+void rott_find_dir (void)
+{
+	static char *c4ix[] = { "/home/rott/", "/home/", 0 };
+	static char *disk[] = { "rott/", "", 0 };
+	struct stat st;
+	char **d, *p;
+	if (rott_dir_known)
+		return;
+	rott_dir_known = 1;
+	for (d = stat("/home", &st) == 0 ? c4ix : disk; *d; d++)
+		if ((p = rott_in(*d, "DARKWAR.WAD")))
+		{
+			free(p);
+			strcpy(rott_dir, *d);
+			printf("rottreg: playing %sDARKWAR.WAD\n", rott_dir);
+			return;
+		}
+	printf("rottreg plays your own Rise of the Triad: The Dark War, its DARKWAR.WAD,\n"
+	       "DARKWAR.RTL and DARKWAR.RTC (and REMOTE1.RTS). Add them with the page's\n"
+	       "Uploads (in /home/rott or /home), then start it again.\n");
+	exit(1);
+}
+
+char *rott_data (char *name)
+{
+	char *p;
+	rott_find_dir();
+	if ((p = rott_in(rott_dir, name)))
+		return p;
+	return name;
+}
+#endif
+
 
 void SafeRead (int handle, void *buffer, long count)
 {

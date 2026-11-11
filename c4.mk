@@ -34,6 +34,18 @@ rott-objs: $(ROTT_UNITS:%=.rott/%.c4o) .rott/plat/rott-c4ix.c4o .rott/plat/rott-
 	$(ROTT_CC) $< $@ > /dev/null
 PHONY += rott-objs
 
+# ... and the registered game, rottreg (README.md, "The registered game:
+# rottreg"): the units again with SHAREWARE 0, into .rottreg/, but for
+# those that come out the same either way (their preprocessed text is),
+# which c4-images.sh takes from .rott/ with the platform's
+ROTT_SHARED  := c4sdl rott-sum midi al_midi gmtimbre ll_man usrhooks rt_err
+ROTTREG_CC   := $(subst SHAREWARE=1,SHAREWARE=0,$(ROTT_CC))
+rottreg-objs: $(patsubst %,.rottreg/%.c4o,$(filter-out $(ROTT_SHARED),$(ROTT_UNITS)))
+.rottreg/%.c4o: $(ROTT)/%.c $(ROTT_HDRS) $(C4LC_LISP) .img_g | c4sp32
+	@mkdir -p .rottreg
+	$(ROTTREG_CC) $< $@ > /dev/null
+PHONY += rottreg-objs
+
 # ... and by gcc for the host, with no display and no sound (rott-host.c),
 # the reference test-rott holds them to: 32-bit as they are, and with SSE's
 # arithmetic, which is IEEE's as c4's is -- the x87's extra precision
@@ -79,5 +91,5 @@ test-rott: rott-data rott-host c4bb-images
 	 rm -rf .rott_t && echo "test-rott: OK"
 PHONY += test-rott
 
-GAME_OBJS  += rott-objs
+GAME_OBJS  += rott-objs rottreg-objs
 GAME_TESTS += test-rott

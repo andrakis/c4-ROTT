@@ -1,8 +1,12 @@
 # Rise of the Triad (games/rott): the game and Apogee's
-# shareware episode, out of its package as it ships
+# shareware episode, out of its package as it ships; and the registered
+# game, rottreg, from the person's own DARKWAR files, which the page's
+# Uploads put in /home/rott or /home
 #@app Games|Rise of the Triad|rott
+#@app Games|Rise of the Triad (your files)|rottreg
 rott/:
 	rott.c4r: c4ix-rott.c4r
+	rottreg.c4r: c4ix-rottreg.c4r
 	HUNTBGIN.WAD
 	HUNTBGIN.RTL
 	HUNTBGIN.RTC

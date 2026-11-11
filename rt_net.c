@@ -3075,6 +3075,25 @@ void SetupGameMaster ( void )
 //
 //****************************************************************************
 
+#if defined(C4ROTT) && (SHAREWARE==0)
+// c4: the registered game's demos are the person's, from the folder its
+// data came from (rt_util.c's rott_dir), as spelt or in lower case: never
+// the shareware's DEMO?_3.DMO where it runs, which it would not play the
+// same. Where that folder is the disk's root, beside the shareware's,
+// there are none (DemoExists).
+#include <ctype.h>
+extern char rott_dir[16];
+void rott_find_dir (void);
+void GetDemoFilename (int demonumber, char * filename)
+{
+   int i;
+   rott_find_dir();
+   sprintf(filename, "%sDEMO%d_%d.DMO", rott_dir, demonumber, gamestate.violence);
+   if (access (filename, F_OK) != 0)
+      for (i = strlen(rott_dir); filename[i]; i++)
+         filename[i] = tolower(filename[i]);
+}
+#else
 void GetDemoFilename (int demonumber, char * filename)
 {
    strcpy(filename,DATADIR "DEMO0_0.DMO\0");
@@ -3083,6 +3102,7 @@ void GetDemoFilename (int demonumber, char * filename)
    filename[6 + strlen(DATADIR)] = (char)('0' + (byte)gamestate.violence);
    FixFilePath(filename);
 }
+#endif
 //****************************************************************************
 //
 // DemoExists ()
@@ -3091,8 +3111,13 @@ void GetDemoFilename (int demonumber, char * filename)
 
 boolean DemoExists (int demonumber)
 {
-   char demo[20 + sizeof(DATADIR)];
+   char demo[40 + sizeof(DATADIR)];
 
+#if defined(C4ROTT) && (SHAREWARE==0)
+   rott_find_dir();
+   if (!rott_dir[0])
+      return false;
+#endif
    GetDemoFilename (demonumber, &demo[0]);
    if (access (demo, F_OK) == 0)
       return true;
@@ -3120,7 +3145,7 @@ boolean DemoExists (int demonumber)
 
 void SaveDemo (int demonumber)
 {
-   char demo[20 + sizeof(DATADIR)];
+   char demo[40 + sizeof(DATADIR)];
 
    RecordDemoCmd ();
    GetDemoFilename (demonumber, &demo[0]);
@@ -3136,7 +3161,7 @@ void SaveDemo (int demonumber)
 
 void LoadDemo (int demonumber)
 {
-   char demo[20 + sizeof(DATADIR)];
+   char demo[40 + sizeof(DATADIR)];
    int size;
 
    GetDemoFilename (demonumber, demo);

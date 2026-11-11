@@ -91,6 +91,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 volatile int    oldtime;
 volatile int    gametime;
 
+#ifdef C4ROTT
+// c4: which game this is (SHAREWARE 1, rott; 0, rottreg), for the
+// platform's files, which both builds share (rott-c4ix.c)
+int rott_registered = !SHAREWARE;
+char *rott_data (char *name);   // rt_util.c: the person's own files
+#endif
 boolean         tedlevel;
 int             tedlevelnum;
 int             tedx=0;
@@ -984,6 +990,9 @@ NoRTC:;
 
 #if (SHAREWARE)
    newargs [argnum++] = DATADIR "HUNTBGIN.WAD";
+#elif defined(C4ROTT)
+   // c4: the person's own, in ROTT's folder or /home (rt_util.c)
+   newargs [argnum++] = rott_data(DATADIR "DARKWAR.WAD");
 #else
    newargs [argnum++] = DATADIR "DARKWAR.WAD";
 #endif
@@ -1005,7 +1014,11 @@ NoRTC:;
       }
    else
       {
+#if defined(C4ROTT) && (SHAREWARE==0)
+      newargs [argnum++] = rott_data(DATADIR "REMOTE1.RTS");
+#else
       newargs [argnum++] = DATADIR "REMOTE1.RTS";
+#endif
       }
 
    newargs [argnum++] = NULL;
