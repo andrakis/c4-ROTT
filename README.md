@@ -5,7 +5,8 @@ It is compiled by c4lc and played on libjs's whole display, from the
 keyboard, with the mouse turning the player. The shareware episode, "The
 HUNT Begins", ships with it. Its music is the DOS game's own MIDI player
 and AdLib driver on the sound card's OPL, and its effects play on the
-card's sample channels (Sound, below).
+card's sample channels (Sound, below); or, when the person chooses
+General MIDI music, as General MIDI on the card's MIDI port.
 
 [docs/ports-feasibility.md](../../docs/ports-feasibility.md) (§7) says why
 icculus's port is the one to build on. The DOS release has Watcom's
@@ -188,6 +189,13 @@ game is told so and plays silent, as on a DOS machine without one.
     unevenly the game runs. When a level is loading, the card brings the
     stream up to now, and the music waits rather than rushing.
   - Fades are `music.c`'s, on the same task manager.
+  - **General MIDI.** When the card has a General MIDI synth on its MIDI
+    port (the page's Configuration, Music: General MIDI; c4's
+    `libjs/README.md`), `MUSIC_Init` gives `midi.c` the functions an
+    MPU-401 had (`mpu401.c`), each a message on the card's stream, and
+    Apogee's extended MIDI picks the songs' General MIDI tracks: the
+    music as the game played it on a Sound Canvas. The task manager, the
+    poll and the fades are the same.
 - **Effects** are the WAD's VOC and WAV lumps, played as they are on the
   card's eight channels of 8-bit samples.
   - A sound's pitch offset, in cents, moves its rate, as `audiolib`'s

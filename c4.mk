@@ -58,7 +58,12 @@ PHONY += rott-data
 # shown and its palette, on a virtual clock), built by gcc and by c4lc --
 # on the bare machine, under C4DOS and inside C4IX -- must show the same
 # frames. The gcc build runs where it may write its config, beside links
-# to the data.
+# to the data. And on the bare machine twice more, with a sound card:
+# on its OPL (cli.js --wav fits one), and with a General MIDI synth on
+# its MIDI port (--midi, rott-snd.c), which must show the same frames as
+# the OPL's and play the music as MIDI, drums and all (midi-notes.mjs).
+# With any card the demo goes otherwise than with NOSOUND, so those two
+# are held to each other rather than to the gcc build, which has no sound.
 ROTT_DEMO := 4
 test-rott: rott-data rott-host c4bb-images
 	@rm -rf .rott_t && mkdir -p .rott_t && \
@@ -70,10 +75,18 @@ test-rott: rott-data rott-host c4bb-images
 	     > ../../../../.rott_t/bare.out 2>/dev/null & \
 	   printf 'rott --timedemo $(ROTT_DEMO) NOSOUND\nver\n' | timeout 1500 node ../../../../libjs/cli.js -m 64 -d . ../c4dos32.c4r \
 	     > ../../../../.rott_t/dos.out 2>/dev/null; wait; } ) && \
-	 printf 'rott --timedemo $(ROTT_DEMO) NOSOUND\nexit\n' | timeout 1500 node libjs/cli.js -m 64 -d src/c4bb/images/disk src/c4bb/images/c4ix32.c4r \
-	   2>/dev/null > .rott_t/c4ix.out && \
+	 ( { cd src/c4bb/images/games && timeout 1500 node ../../../../libjs/cli.js -m 64 -d . --wav ../../../../.rott_t/opl.wav rott.c4r \
+	       --timedemo $(ROTT_DEMO) > ../../../../.rott_t/opl.out 2>/dev/null; } & \
+	   { cd src/c4bb/images/games && timeout 1500 node ../../../../libjs/cli.js -m 64 -d . --midi ../../../../.rott_t/gm.txt rott.c4r \
+	       --timedemo $(ROTT_DEMO) > ../../../../.rott_t/gm.out 2>/dev/null; } & \
+	   printf 'rott --timedemo $(ROTT_DEMO) NOSOUND\nexit\n' | timeout 1500 node libjs/cli.js -m 64 -d src/c4bb/images/disk src/c4bb/images/c4ix32.c4r \
+	     2>/dev/null > .rott_t/c4ix.out; wait ) && \
 	 for w in bare dos c4ix; do grep '^timedemo' .rott_t/$$w.out | cmp -s .rott_t/host.txt - \
 	   || { echo "test-rott: $$w's frames differ:"; tail -5 .rott_t/$$w.out; exit 1; }; done && \
+	 { grep '^timedemo' .rott_t/opl.out > .rott_t/opl.txt && grep '^timedemo' .rott_t/gm.out | cmp -s .rott_t/opl.txt - \
+	   || { echo "test-rott: with General MIDI music, the frames differ from the OPL's:"; tail -2 .rott_t/opl.out; tail -5 .rott_t/gm.out; exit 1; }; } && \
+	 { m=$$(node libjs/tests/src/midi-notes.mjs .rott_t/gm.txt 1000 4) && echo "test-rott: General MIDI: $$m" \
+	   || { echo "test-rott: the General MIDI music did not play: $$m"; exit 1; }; } && \
 	 { grep -A1 '^timedemo' .rott_t/dos.out | grep -Eq '^A(:\\)?>C4DOS version' \
 	   || { echo "test-rott: C4DOS did not come back to its prompt:"; tail -5 .rott_t/dos.out; exit 1; }; } && \
 	 rm -rf .rott_t && echo "test-rott: OK"
