@@ -3,7 +3,7 @@
 // icculus's fx_man.c and dukemusc.c, which put them on SDL_mixer.
 //
 // The effects are the WAD's VOC and WAV lumps. They play as they are on
-// the card's eight sample channels, at their own rate moved by the pitch
+// the card's sixteen sample channels, at their own rate moved by the pitch
 // the game asks for, panned by angle and distance as audiolib's mixer
 // (multivoc.c) panned them.
 //
