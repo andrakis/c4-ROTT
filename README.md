@@ -18,9 +18,9 @@ was M13 ([docs/c4lc-design.md](../../docs/c4lc-design.md) 14.12).
 
 | where | how | platform |
 |---|---|---|
-| C4IX, the whole display | `rott`, or Go > Rise of the Triad; the desktop gives way until it ends (`include/display.h`) | `c4sdl.c`, `rott-c4ix.c` |
+| C4IX, the whole display | `rott`, or Go > Games > Rise of the Triad; the desktop gives way until it ends (`include/display.h`) | `c4sdl.c`, `rott-c4ix.c` |
 | C4IX, a window | `rott --window` from a Terminal, which becomes the game's window (`include/window.h`), as `wolf3d --window`, `doom -window` and `tyrian --window` play; also when a program that does not give way has the display | `c4sdl.c`, `rott-c4ix.c` |
-| C4DOS | `ROTT` at the `A>` prompt; the page's `?system=c4dos` | `c4sdl.c`, `rott-bare.c` |
+| C4DOS | `ROTT` at the `A:\>` prompt; the page's `?system=c4dos` | `c4sdl.c`, `rott-bare.c` |
 | a grin window, under C4DOS | Program Manager's Games > Rise of the Triad, or `ROTT.C4R` in File Manager or a DOS Prompt, in grin (`?system=c4dos` boots into it) | `c4sdl.c`, `rott-bare.c`, through grin's table (below) |
 | the bare machine | `rott.c4r` as the machine's image; the page's `?system=rott` | `c4sdl.c`, `rott-bare.c` |
 
@@ -44,7 +44,7 @@ runs grin's loop once, so grin's applications (a Clock, Notepad) carry on
 while the game plays; the window is 1x (320x200) or 2x (640x400), from its
 Size menu; keys reach the game only while its window has the focus; and
 closing the window ends the game, as quitting it would. Without grin -- at
-`A>`, full screen from grin, or on the bare machine -- nothing changes.
+`A:\>`, full screen from grin, or on the bare machine -- nothing changes.
 
 In grin's window the mouse turns the player too: a click on the window
 locks it to the display, as full screen, Esc lets it go, and its motion
@@ -234,7 +234,7 @@ game is told so and plays silent, as on a DOS machine without one.
     music as the game played it on a Sound Canvas. The task manager, the
     poll and the fades are the same.
 - **Effects** are the WAD's VOC and WAV lumps, played as they are on the
-  card's eight channels of 8-bit samples.
+  card's sixteen channels of 8-bit samples.
   - A sound's pitch offset, in cents, moves its rate, as `audiolib`'s
     `PITCH_GetScale` did.
   - A positioned sound is panned by angle and distance with
@@ -242,7 +242,7 @@ game is told so and plays silent, as on a DOS machine without one.
     over a quarter turn.
   - A finished sound is let go, and the game is told by its callback, at
     the next poll.
-  - The priorities decide who gets a channel when all eight are playing.
+  - The priorities decide who gets a channel when all sixteen are playing.
 
 The `C4ROTT` changes in `audiolib` are four:
 - `AL_Init` asks no Sound Blaster which OPL it has;
