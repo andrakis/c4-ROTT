@@ -72,10 +72,9 @@ PHONY += rott-data
 # frames. The gcc build runs where it may write its config, beside links
 # to the data. And on the bare machine twice more, with a sound card:
 # on its OPL (cli.js --wav fits one), and with a General MIDI synth on
-# its MIDI port (--midi, rott-snd.c), which must show the same frames as
-# the OPL's and play the music as MIDI, drums and all (midi-notes.mjs).
-# With any card the demo goes otherwise than with NOSOUND, so those two
-# are held to each other rather than to the gcc build, which has no sound.
+# its MIDI port (--midi, rott-snd.c). With sound or without, the frames
+# are the gcc build's (README.md, "Sound and the timedemo"), and the
+# MIDI run must play the music, drums and all (midi-notes.mjs).
 ROTT_DEMO := 4
 test-rott: rott-data rott-host c4bb-images
 	@rm -rf .rott_t && mkdir -p .rott_t && \
@@ -93,10 +92,8 @@ test-rott: rott-data rott-host c4bb-images
 	       --timedemo $(ROTT_DEMO) > ../../../../.rott_t/gm.out 2>/dev/null; } & \
 	   printf 'rott --timedemo $(ROTT_DEMO) NOSOUND\nexit\n' | timeout 1500 node libjs/cli.js -m 64 -d src/c4bb/images/disk src/c4bb/images/c4ix32.c4r \
 	     2>/dev/null > .rott_t/c4ix.out; wait ) && \
-	 for w in bare dos c4ix; do grep '^timedemo' .rott_t/$$w.out | cmp -s .rott_t/host.txt - \
+	 for w in bare dos c4ix opl gm; do grep '^timedemo' .rott_t/$$w.out | cmp -s .rott_t/host.txt - \
 	   || { echo "test-rott: $$w's frames differ:"; tail -5 .rott_t/$$w.out; exit 1; }; done && \
-	 { grep '^timedemo' .rott_t/opl.out > .rott_t/opl.txt && grep '^timedemo' .rott_t/gm.out | cmp -s .rott_t/opl.txt - \
-	   || { echo "test-rott: with General MIDI music, the frames differ from the OPL's:"; tail -2 .rott_t/opl.out; tail -5 .rott_t/gm.out; exit 1; }; } && \
 	 { m=$$(node libjs/tests/src/midi-notes.mjs .rott_t/gm.txt 1000 4) && echo "test-rott: General MIDI: $$m" \
 	   || { echo "test-rott: the General MIDI music did not play: $$m"; exit 1; }; } && \
 	 { grep -A1 '^timedemo' .rott_t/dos.out | grep -Eq '^A(:\\)?>C4DOS version' \

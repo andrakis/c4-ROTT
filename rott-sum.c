@@ -4,7 +4,8 @@
 //
 //   timedemo: demo 1: 2711 frames, checksum 1a2b3c4d
 //
-// a checksum of every frame shown, its palette with it. While timing the
+// a checksum of every frame shown but the loading bar's (rott_loading),
+// its palette with it. While timing the
 // clock is virtual, as Wolf3D's, Doom's and Tyrian's are -- each reading a
 // millisecond later, and a delay adding its wait -- so the frames are the
 // same on any machine, and the gcc and c4lc builds must print the same
@@ -26,6 +27,7 @@ static int demo;
 static int frames;
 static uint32_t sum;
 static uint32_t now;
+static int loading;             // the loading bar's frames (rt_ted.c)
 
 // How fast it went, by the real clock from the first frame, as a line
 // before the checksum's: frames, seconds and frames a second. The clock is
@@ -95,7 +97,7 @@ void rott_frame(uint8_t *pixels, int w, int h, int pitch, uint32_t *palette) {
 	int i, y;
 	uint32_t hh;
 	uint8_t *p;
-	if (!timing) return;
+	if (!timing || loading) return;
 	if (!frames) t0 = plat_ms();
 	hh = sum;
 	for (i = 0; i < 256; i++) hh = hh * 31 + palette[i];
@@ -108,6 +110,11 @@ void rott_frame(uint8_t *pixels, int w, int h, int pitch, uint32_t *palette) {
 	frames++;
 	if (tracing) printf("frame %d %08x\n", frames, (unsigned) hh);
 }
+
+// The level's loading bar, while PreCache fills it in. Its lights follow
+// how much of the zone is used, which with a sound card includes the
+// music and the sounds: a timedemo counts and sums none of its frames.
+void rott_loading(int on) { loading = on; }
 
 uint32_t rott_ticks(void) {
 	if (timing) return ++now;

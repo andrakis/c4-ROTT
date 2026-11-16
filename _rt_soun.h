@@ -86,7 +86,11 @@ enum {
 
 #define SD_RANDOMSHIFT 1
 
+#ifdef C4ROTT
+#define PitchOffset()  ((PitchRNG()-128)>>SD_RANDOMSHIFT)
+#else
 #define PitchOffset()  ((RandomNumber("Pitch Offset",0)-128)>>SD_RANDOMSHIFT)
+#endif
 
 #define SoundOffset(x) (sounds[x].snds[soundtype])
 

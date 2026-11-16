@@ -38,6 +38,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 static int rndindex;
 static int sndindex = 0;
+#ifdef C4ROTT
+// the sounds' pitches, from an index of their own: RandomNumber's are
+// drawn for effects such as how the player's death is shown (Died), and
+// each sound played -- none without a sound card -- moved them on
+static int pitchindex = 0;
+#endif
 
 
 //****************************************************************************
@@ -70,6 +76,9 @@ void  InitializeRNG ( void )
 {
    SetRNGindex(GetRandomSeed());
    sndindex=GetRandomSeed();
+#ifdef C4ROTT
+   pitchindex=GetRandomSeed();
+#endif
 }
 
 //****************************************************************************
@@ -96,6 +105,14 @@ int GetRNGindex ( void )
 {
    return rndindex;
 }
+
+#ifdef C4ROTT
+int PitchRNG ( void )
+{
+   pitchindex = (pitchindex+1)&(SIZE_OF_RANDOM_TABLE-1);
+   return RandomTable[pitchindex];
+}
+#endif
 
 
 #if (RANDOMTEST==1)
