@@ -2,6 +2,18 @@
 
 #include "watcom.h"
 
+#if defined(C4ROTT) && defined(__c4_inttypes__)
+/* c4: watcom.h's macros take these names where the accelerators do not */
+#undef FixedMul
+#undef FixedMulShift
+#undef FixedDiv2
+#undef FixedScale
+#define FixedMul c4_FixedMul
+#define FixedMulShift c4_FixedMulShift
+#define FixedDiv2 c4_FixedDiv2
+#define FixedScale c4_FixedScale
+#endif
+
 /* 
   C versions of watcom.h assembly.
   Uses the '__int64' type (see rt_def.h).

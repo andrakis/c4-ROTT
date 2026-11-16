@@ -43,6 +43,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #ifdef _ROTT_
 #include "rt_def.h"
+#ifdef C4ROTT
+#include "c4accel.h"     /* c4: the accelerators, ACCELERATED */
+#endif
 #else
 #include "st_def.h"
 #endif
@@ -520,6 +523,12 @@ boolean ParseConfigFile (void)
 
       // Read in CrossHair
       ReadBoolean("CrossHair",&iG_aimCross);
+
+#ifdef C4ROTT
+      // c4: Extended User Options' ACCELERATED, on unless this says 0
+      ReadInt("BrowserAccelerated",&rott_accel_on);
+      rott_accel_set(rott_accel_on);
+#endif
 
       // Read in JoystickEnabled
       ReadBoolean("JoystickEnabled",&joystickenabled);
@@ -1781,6 +1790,14 @@ void WriteConfig (void)
    SafeWriteString(file,"; 1 - CrossHair Enabled\n");
    SafeWriteString(file,"; 0 - CrossHair Disabled\n");
    WriteParameter(file,"CrossHair        ", iG_aimCross);
+
+#ifdef C4ROTT
+   // c4: Write out BrowserAccelerated
+   SafeWriteString(file,"\n;\n");
+   SafeWriteString(file,"; 1 - the browser draws the walls, floors and sprites, when it can\n");
+   SafeWriteString(file,"; 0 - the game draws them\n");
+   WriteParameter(file,"BrowserAccelerated ",rott_accel_on);
+#endif
 
    // Write out JoystickEnabled
 

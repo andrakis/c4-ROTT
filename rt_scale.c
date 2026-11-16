@@ -211,6 +211,16 @@ void ScaleTransparentPost (byte * src, byte * buf, int level)
 
    seelevel=colormap+(((level+64)>>2)<<8);
    oldlevel=shadingtable;
+#ifdef C4ROTT
+   if (ROTT_ACCEL() > 0)   /* c4: c4/accel.mjs's RA_POST, every run */
+      {
+      rott_post(src, buf, sprtopoffset, dc_invscale, viewheight, dc_texturemid, dc_iscale,
+                centery, shadingtable, seelevel, ylookup, iGLOBAL_SCREENWIDTH,
+                RA_POST_TRANS, &dc_yl, &dc_yh, &dc_source);
+      whereami=-2;
+      return;
+      }
+#endif
    offset=*(src++);
    for (;offset!=255;)
       {
@@ -256,6 +266,15 @@ void ScaleMaskedPost (byte * src, byte * buf)
    int  bottomscreen;
 
    whereami=26;
+#ifdef C4ROTT
+   if (ROTT_ACCEL() > 0)   /* c4: c4/accel.mjs's RA_POST, every run */
+      {
+      rott_post(src, buf, sprtopoffset, dc_invscale, viewheight, dc_texturemid, dc_iscale,
+                centery, shadingtable, shadingtable, ylookup, iGLOBAL_SCREENWIDTH,
+                0, &dc_yl, &dc_yh, &dc_source);
+      return;
+      }
+#endif
    offset=*(src++);
    for (;offset!=255;)
       {
@@ -290,6 +309,15 @@ void ScaleClippedPost (byte * src, byte * buf)
    int  bottomscreen;
 
    whereami=27;
+#ifdef C4ROTT
+   if (ROTT_ACCEL() > 0)   /* c4: c4/accel.mjs's RA_POST, every run */
+      {
+      rott_post(src, buf, sprtopoffset, dc_invscale, viewheight, dc_texturemid, dc_iscale,
+                centeryclipped, shadingtable, shadingtable, ylookup, iGLOBAL_SCREENWIDTH,
+                RA_POST_ROUND | RA_POST_CLIP, &dc_yl, &dc_yh, &dc_source);
+      return;
+      }
+#endif
    offset=*(src++);
    for (;offset!=255;)
       {
@@ -357,6 +385,15 @@ void ScaleTransparentClippedPost (byte * src, byte * buf, int level)
 
    seelevel=colormap+(((level+64)>>2)<<8);
    oldlevel=shadingtable;
+#ifdef C4ROTT
+   if (ROTT_ACCEL() > 0)   /* c4: c4/accel.mjs's RA_POST, every run */
+      {
+      rott_post(src, buf, sprtopoffset, dc_invscale, viewheight, dc_texturemid, dc_iscale,
+                centeryclipped, shadingtable, seelevel, ylookup, iGLOBAL_SCREENWIDTH,
+                RA_POST_CLIP | RA_POST_TRANS, &dc_yl, &dc_yh, &dc_source);
+      return;
+      }
+#endif
    offset=*(src++);
    for (;offset!=255;)
       {
@@ -1353,6 +1390,18 @@ void DrawNormalSprite (int x, int y, int shapenum)
 
 #ifndef DOS
 
+#ifdef C4ROTT
+/* c4: ROTT's accelerators (c4/accel.mjs, c4/c4accel.h). rott_accel is the
+   first of ROTT's numbers, or 0: the game's to draw them. -1 until asked,
+   which the first column does; the config (rt_cfg.c) and Extended User
+   Options' ACCELERATED (rt_menu.c) set it. */
+int rott_accel = -1;
+int rott_accel_on = 1;
+int rott_accel_base(void) { return rott_accel = rott_accel_on ? accel_find("rott") : 0; }
+int rott_accel_avail(void) { return accel_find("rott") != 0; }
+void rott_accel_set(int on) { rott_accel_on = on != 0; rott_accel = rott_accel_on ? accel_find("rott") : 0; }
+#endif
+
 void R_DrawColumn (byte * buf)
 {
 	// This is *NOT* 100% correct - DDOI
@@ -1368,6 +1417,12 @@ void R_DrawColumn (byte * buf)
 	fracstep = dc_iscale;
 	frac = dc_texturemid + (dc_yl-centery)*fracstep;
 
+#ifdef C4ROTT
+	if (count > 0 && ROTT_ACCEL() > 0) {
+		rott_col(count, frac, fracstep, SFRACBITS, 1, dc_source, shadingtable, dest, iGLOBAL_SCREENWIDTH);
+		return;
+	}
+#endif
 	while (count--) {
 		//*dest = test++;
 		*dest = shadingtable[dc_source[(frac>>SFRACBITS)]];
@@ -1386,6 +1441,12 @@ void R_TransColumn (byte * buf)
 
 	dest = buf + ylookup[dc_yl];
 
+#ifdef C4ROTT
+	if (count > 0 && ROTT_ACCEL() > 0) {
+		rott_trans(count, shadingtable, dest, iGLOBAL_SCREENWIDTH);
+		return;
+	}
+#endif
 	while (count--)
 	{
 		*dest = shadingtable[*dest];
@@ -1410,6 +1471,12 @@ void R_DrawWallColumn (byte * buf)
 	frac <<= 10;
 	fracstep <<= 10;
 
+#ifdef C4ROTT
+	if (count > 0 && ROTT_ACCEL() > 0) {
+		rott_col(count, frac, fracstep, 26, 0, dc_source, shadingtable, dest, iGLOBAL_SCREENWIDTH);
+		return;
+	}
+#endif
 	while (count--) {
 		//*dest = 6;
 		*dest = shadingtable[dc_source[(((unsigned)frac)>>26)]];
@@ -1435,6 +1502,12 @@ void R_DrawClippedColumn (byte * buf)
 	fracstep = dc_iscale;
 	frac = dc_texturemid + (dc_yl-centeryclipped)*fracstep;
 
+#ifdef C4ROTT
+	if (count > 0 && ROTT_ACCEL() > 0) {
+		rott_col(count, frac, fracstep, SFRACBITS, 0, dc_source, shadingtable, dest, iGLOBAL_SCREENWIDTH);
+		return;
+	}
+#endif
 	while (count--) {
 		*dest = shadingtable[dc_source[(((unsigned)frac)>>SFRACBITS)]];
 		dest += iGLOBAL_SCREENWIDTH;

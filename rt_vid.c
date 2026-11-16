@@ -247,6 +247,13 @@ void DrawTiledRegion
 
    mask  = 1 << ( x & 3 );
 #endif
+#ifdef C4ROTT
+   if (width > 0 && height > 0 && ROTT_ACCEL() > 0)   /* c4: c4/accel.mjs's RA_TILE */
+      {
+      rott_tile(start, width, height, offx, offy, source, sourcewidth, sourceheight, iGLOBAL_SCREENWIDTH);
+      return;
+      }
+#endif
    plane = 4;
    while( plane > 0 )
       {
