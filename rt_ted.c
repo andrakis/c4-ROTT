@@ -1140,6 +1140,9 @@ void DrawPreCache( void )
 =
 ======================
 */
+#ifdef C4ROTT
+void rott_loading(int on);   // rott-sum.c
+#endif
 void PreCache( void )
 {
    int i;
@@ -1194,6 +1197,9 @@ void PreCache( void )
       tempbuf=bufferofs;
       bufferofs=page1start; // fixed, was displayofs
       ticdelay=CACHETICDELAY;
+#ifdef C4ROTT
+      rott_loading(1);
+#endif
       for (i=1;i<cacheindex;i++)
 			{
          dummy=W_CacheLumpNum(cachelist[i].lump,cachelist[i].cachelevel, CvtForType(cachelist[i].type), 1);
@@ -1269,6 +1275,9 @@ void PreCache( void )
 	  DisableScreenStretch();//bna++
 	  VW_UpdateScreen ();//bna++
 	  //I_Delay(200);
+#ifdef C4ROTT
+      rott_loading(0);
+#endif
       bufferofs=tempbuf;
       ShutdownPreCache ();
 

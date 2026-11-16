@@ -48,4 +48,7 @@ int   RNG ( void );
 
 void  SetRNGindex ( int i );
 int   GetRNGindex ( void );
+#ifdef C4ROTT
+int   PitchRNG ( void );
+#endif
 #endif

@@ -144,6 +144,11 @@ Each is under `#ifdef C4ROTT`. Everything else is the port's own code.
   on (`rt_util.c`, `rt_cfg.c`). `VENDOR.DOC` is not written back out of
   the WAD (`rt_cfg.c`); the package's copy is on the disk.
 
+- **The same frames with sound and without** ("Sound and the
+  timedemo", below): the sounds' pitches have a random index of their
+  own (`rt_rand.c`, `_rt_soun.h`), and a timedemo leaves out the
+  loading bar's frames (`rt_ted.c`, `rott-sum.c`).
+
 ## C4 bugs it found
 
 - **libc's varargs.** A variadic call's arguments went on a 128-word stack
@@ -170,14 +175,15 @@ Each is under `#ifdef C4ROTT`. Everything else is the port's own code.
   SSE's arithmetic. That is IEEE's, as c4's is; the x87's extra precision
   played the demos differently at `-O0` and `-O2`.
 - `make test-rott` plays demo 4 with `--timedemo 4 NOSOUND` four ways: the
-  gcc build, then c4lc's on the bare machine, under C4DOS and inside C4IX.
-  All four must print the same frames:
+  gcc build, then c4lc's on the bare machine, under C4DOS and inside C4IX;
+  and twice more on the bare machine with sound, on the card's OPL and on
+  a General MIDI synth. All six must print the same frames:
 
   ```
-  timedemo: demo 1: 1613 frames, checksum 880c2201
-  timedemo: demo 2: 880 frames, checksum b4a61d41
-  timedemo: demo 3: 1081 frames, checksum 6ae88033
-  timedemo: demo 4: 609 frames, checksum 3b083b33
+  timedemo: demo 1: 1481 frames, checksum b0fe23ad
+  timedemo: demo 2: 745 frames, checksum 9460844c
+  timedemo: demo 3: 946 frames, checksum 3e81c403
+  timedemo: demo 4: 475 frames, checksum 4c959773
   ```
 
   On the bare machine, under libjs's `cli.js`, the four take 49, 24, 31
@@ -189,7 +195,7 @@ Each is under `#ifdef C4ROTT`. Everything else is the port's own code.
   checksum, by the machine's real clock from the first frame:
 
   ```
-  speed: demo 4: 609 frames in 14.205 s, 152.9 fps
+  speed: demo 4: 475 frames in 14.205 s, 33.4 fps
   ```
 
   In the page that clock is the wall's. Under `cli.js`, unpaced, it is
@@ -252,7 +258,27 @@ The `C4ROTT` changes in `audiolib` are four:
   which gcc insists on.
 
 `--timedemo` with `NOSOUND` starts neither interface, and gcc's build
-never touches the card. With music on, a demo is timed differently.
-The timedemo clock moves a millisecond each time it is read, and
-between songs the game reads it in a loop until the fade is done
-(`MU_FadeToSong`). Demo 4 then shows 582 frames, not 609.
+never touches the card.
+
+### Sound and the timedemo
+
+A demo plays the same with sound and without, and a timedemo shows the
+same frames. Two things in the game made them differ, both from what
+it does only when a card plays:
+
+- **The effects' random numbers.** The game has two random tables'
+  indices: `GameRandomNumber`'s, which the play draws on and which a
+  demo keeps in step, and `RandomNumber`'s, for what only shows. A
+  sound played took its pitch from `RandomNumber`, but with no card
+  no sound plays and none was drawn. Then `Died`, which picks with
+  `RandomNumber` how the player's death is shown, picked otherwise:
+  in demo 4 a fade to red, whose steps wait a frame each, instead of
+  the view turning. On the timedemo's clock that took a different
+  time, and the demo showed 582 frames for 609. The pitches now have an
+  index of their own (`PitchRNG`, `rt_rand.c`).
+- **The loading bar.** Its upper lights follow how much of the zone
+  is used, and with a card that includes the level's sounds, which
+  `PreCache` loads too, and the songs. The bar's frames were
+  different, and there were more of them. A timedemo now neither counts
+  nor sums the frames `PreCache` shows while it loads (`rott_loading`,
+  `rott-sum.c`). A timedemo's frames are the demo's.
