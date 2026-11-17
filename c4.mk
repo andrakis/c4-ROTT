@@ -23,14 +23,14 @@ ROTT_HDRS  := $(wildcard $(ROTT)/*.h $(ROTT)/c4/*.h) \
               src/c4ix/include/display.h libjs/guest/gui.h libjs/guest/gui.c \
               libjs/guest/accel.h
 ROTT_DEFS  := -D C4ROTT -D PLATFORM_UNIX=1 -D USE_SDL=1 -D SHAREWARE=1 -D SUPERROTT=0 -D SITELICENSE=0
-ROTT_CC    := ./c4sp32 -c 400000 src/c4sp/lisp/c4lc.lisp -O $(IMG_G) -mfuse -fno-builtin -c -conforming \
+ROTT_CC    := $(call lc32,-c 400000) -O $(IMG_G) -mfuse -fno-builtin -c -conforming \
               $(ROTT_DEFS) -I $(ROTT)/c4 -I src/c4ix/libc/include -I src/c4ix/include \
               -I libjs/guest -I $(ROTT)
 rott-objs: $(ROTT_UNITS:%=.rott/%.c4o) .rott/plat/rott-c4ix.c4o .rott/plat/rott-bare.c4o
-.rott/%.c4o: $(ROTT)/%.c $(ROTT_HDRS) $(C4LC_LISP) .img_g | c4sp32
+.rott/%.c4o: $(ROTT)/%.c $(ROTT_HDRS) $(C4LC_LISP) .img_g | $(LC32_BIN)
 	@mkdir -p .rott/plat
 	$(ROTT_CC) $< $@ > /dev/null
-.rott/plat/%.c4o: $(ROTT)/%.c $(ROTT_HDRS) $(C4LC_LISP) .img_g | c4sp32
+.rott/plat/%.c4o: $(ROTT)/%.c $(ROTT_HDRS) $(C4LC_LISP) .img_g | $(LC32_BIN)
 	@mkdir -p .rott/plat
 	$(ROTT_CC) $< $@ > /dev/null
 PHONY += rott-objs
@@ -42,7 +42,7 @@ PHONY += rott-objs
 ROTT_SHARED  := c4sdl rott-sum midi al_midi gmtimbre ll_man usrhooks rt_err
 ROTTREG_CC   := $(subst SHAREWARE=1,SHAREWARE=0,$(ROTT_CC))
 rottreg-objs: $(patsubst %,.rottreg/%.c4o,$(filter-out $(ROTT_SHARED),$(ROTT_UNITS)))
-.rottreg/%.c4o: $(ROTT)/%.c $(ROTT_HDRS) $(C4LC_LISP) .img_g | c4sp32
+.rottreg/%.c4o: $(ROTT)/%.c $(ROTT_HDRS) $(C4LC_LISP) .img_g | $(LC32_BIN)
 	@mkdir -p .rottreg
 	$(ROTTREG_CC) $< $@ > /dev/null
 PHONY += rottreg-objs
@@ -83,7 +83,7 @@ ROTT_DEMO := 4
 # timedemo runs below have them, so their frames are the accelerators'; the
 # gcc build has none. The General MIDI run goes without (--no-accel): the
 # music's time is the machine's, which the accelerators shorten.
-.rott/test/acceltest.c4o: $(ROTT)/c4/acceltest.c $(ROTT_HDRS) $(C4LC_LISP) .img_g | c4sp32
+.rott/test/acceltest.c4o: $(ROTT)/c4/acceltest.c $(ROTT_HDRS) $(C4LC_LISP) .img_g | $(LC32_BIN)
 	@mkdir -p .rott/test
 	$(ROTT_CC) $< $@ > /dev/null
 .rott/test/acceltest.c4r: .rott/test/acceltest.c4o libc-bare-objs
