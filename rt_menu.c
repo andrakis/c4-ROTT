@@ -45,6 +45,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <sys/stat.h>
 
 #include "rt_def.h"
+#ifdef C4ROTT
+#include "c4accel.h"     /* c4: the accelerators, ACCELERATED */
+#endif
 #include "_rt_menu.h"
 #include "rt_menu.h"
 #include "rt_sound.h"
@@ -753,9 +756,10 @@ CP_MenuNames ExtOptionsNames[] =
    "INVERSE MOUSE",
    "CROSS HAIR",
    "JUMPING",
-   "FULLSCREEN"
+   "FULLSCREEN",
+   "ACCELERATED"   // c4: the machine's accelerators (c4/accel.mjs)
    };
-CP_iteminfo ExtOptionsItems = { 20, MENU_Y, 5, 0, 43, ExtOptionsNames, mn_largefont };
+CP_iteminfo ExtOptionsItems = { 20, MENU_Y, 6, 0, 43, ExtOptionsNames, mn_largefont };
 
 CP_itemtype ExtOptionsMenu[] =
 {
@@ -763,7 +767,8 @@ CP_itemtype ExtOptionsMenu[] =
    {1, "", 'I', NULL},
    {1, "", 'C', NULL},
    {1, "", 'J', NULL},
-   {1, "", 'F', NULL}
+   {1, "", 'F', NULL},
+   {1, "", 'B', NULL}
 };
    
 //bna added end
@@ -5348,6 +5353,14 @@ void DrawExtOptionsMenu (void)
 {
    MenuNum = 1;
 
+#ifdef C4ROTT
+   // c4: ACCELERATED only where the machine has them
+   if (!rott_accel_avail())
+      ExtOptionsMenu[5].active = CP_Inactive;
+   else if (ExtOptionsMenu[5].active == CP_Inactive)
+      ExtOptionsMenu[5].active = CP_Active;
+#endif
+
    SetAlternateMenuBuf();
    ClearMenuBuf();
    SetMenuTitle ("Extended User Options");
@@ -5394,6 +5407,15 @@ void CP_ExtOptionsMenu (void)
                DrawExtOptionsButtons ();
             }
             break;
+#ifdef C4ROTT
+         case 5:   // c4: the machine's accelerators, when it has them
+            if (rott_accel_avail())
+            {
+               rott_accel_set(!rott_accel_on);
+               DrawExtOptionsButtons ();
+            }
+            break;
+#endif
       }
 
 	} while (which >= 0);
@@ -5426,6 +5448,9 @@ void DrawExtOptionsButtons (void)
             case 2: if (iG_aimCross   == 1) on = 1; break;
             case 3: if (usejump       == 1) on = 1; break;
             case 4: if (sdl_fullscreen== 1) on = 1; break;
+#ifdef C4ROTT
+            case 5: if (rott_accel_on && rott_accel_avail()) on = 1; break;
+#endif
          }
 
          if (on)

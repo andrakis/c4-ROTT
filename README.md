@@ -110,6 +110,7 @@ than the shareware.
 | `rott-sum.c` | what every platform shares: `--timedemo N` and `--window` off the command line, each frame shown checksummed with its palette, on a virtual clock |
 | `rott-c4ix.c`, `rott-bare.c` | whether the display has to be asked for, where the game starts, and the window instead: on C4IX with `--window`, under grin its window |
 | `rott-host.c` | the platform on a host, built with gcc: no display and no sound, the reference for `make test-rott` |
+| `c4/accel.mjs`, `c4/c4accel.h`, `c4/acceltest.c` | the browser's accelerators ("Browser accelerated", below): the drawing loops and the fixed-point helpers in the game's own JavaScript, their numbers and macros, and their test against the C |
 | `c4/` | `SDL.h`, a `signal.h`, and the `stdint.h`, `stdbool.h` and `inttypes.h` C4IX's libc lacks; and for `audiolib`, a `conio.h` whose port writes go to the card's OPL, and the DOS headers (`dos.h`, `dpmi.h`, `interrup.h`, `blaster.h`, `user.h`) as next to nothing |
 | `tools/rottdata.py`, `data/` | the package and what reads it |
 
@@ -148,6 +149,15 @@ Each is under `#ifdef C4ROTT`. Everything else is the port's own code.
   timedemo", below): the sounds' pitches have a random index of their
   own (`rt_rand.c`, `_rt_soun.h`), and a timedemo leaves out the
   loading bar's frames (`rt_ted.c`, `rott-sum.c`).
+- **The browser's accelerators** ("Browser accelerated", below): the
+  columns, posts, floors, sky, turned screen and tiled regions ask
+  `ROTT_ACCEL()` first (`rt_scale.c`, `rt_floor.c`, `rt_draw.c`,
+  `rt_vid.c`); `watcom.h` makes `FixedMul`, `FixedMulShift`, `FixedDiv2`
+  and `FixedScale` macros that choose the accelerator, and `watcom.c`
+  names the functions `c4_FixedMul` and so on under c4lc; Extended User
+  Options has ACCELERATED (`rt_menu.c`), kept in the config
+  (`rt_cfg.c`). Turning the screen copies it a row at a time with
+  `memcpy`, one instruction, not a byte at a time (`rt_draw.c`).
 
 ## C4 bugs it found
 
@@ -174,7 +184,10 @@ Each is under `#ifdef C4ROTT`. Everything else is the port's own code.
 - `make rott-host` is the gcc build, 32-bit as the c4lc build is, and with
   SSE's arithmetic. That is IEEE's, as c4's is; the x87's extra precision
   played the demos differently at `-O0` and `-O2`.
-- `make test-rott` plays demo 4 with `--timedemo 4 NOSOUND` four ways: the
+- `make test-rott` first runs `c4/acceltest.c` (`.rott/test/`), each of
+  the accelerators against the loop it stands for, on made-up data, and
+  then plays demo 4 (with the accelerators, but for the General MIDI
+  run, whose music keeps the machine's time) with `--timedemo 4 NOSOUND` four ways: the
   gcc build, then c4lc's on the bare machine, under C4DOS and inside C4IX;
   and twice more on the bare machine with sound, on the card's OPL and on
   a General MIDI synth. All six must print the same frames:
@@ -205,7 +218,29 @@ Each is under `#ifdef C4ROTT`. Everything else is the port's own code.
 
 In the page, on the machine this was measured on, the first level played
 at about 14 frames a second on the bare machine (`?system=rott`, paced at
-400 MHz, the host managing about 70M instructions a second).
+400 MHz, the host managing about 70M instructions a second). That was
+before the browser's accelerators.
+
+### Browser accelerated
+
+Where the machine has them (libjs, in the page and under node's
+`cli.js`; c4's `docs/accel.md`), the game's innermost loops are each one
+instruction, run by the host in the game's own JavaScript,
+`c4/accel.mjs`: walls', sprites' and the sky's columns, translucent
+columns, a sprite's whole post, floors' and ceilings' rows, the turned
+screen's rows, tiled regions, and `FixedMul`, `FixedMulShift`,
+`FixedDiv2` and `FixedScale`. The frames are the same, to the byte, and
+everywhere else the game draws with its C.
+
+Extended User Options has **ACCELERATED**, on unless turned off,
+kept in the config as `BrowserAccelerated`; it is greyed out where the
+machine has none (C4DOS's, c4m's, gcc's build).
+
+On node's bare machine a frame of the four timedemos is 1.3 to 1.4 M
+instructions on average where it was 3.6 to 4.2 M, and the worst 2.6 to
+2.9 M where it was 11.5 M; 0.89 M of each is the timedemo's own
+checksum, so a frame a player sees is a fifth or less of what it was
+(`docs/accel.md`, section 4.4).
 
 ## Sound
 

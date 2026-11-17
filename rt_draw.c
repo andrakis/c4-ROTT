@@ -3160,10 +3160,16 @@ void StartupRotateBuffer ( int masked)
 		   }
 
 	  }else if ((masked == true)||(iGLOBAL_SCREENWIDTH == 320)) {
+#ifdef C4ROTT
+		  /* c4: a row at a time, memcpy being one instruction, MCPY */
+		  for (a=0;a<200;a++)
+			 memcpy(RotatedImage+99+((a+28)<<9), (byte *)bufferofs+(a*linewidth), 320);
+#else
 		  for (a=0;a<200;a++){
 			 for (b=0;b<320;b++)
 				*(RotatedImage+99+((a+28)<<9)+b)=*((byte *)bufferofs+(a*linewidth)+b);
 		  }
+#endif
 	  }
 
 }
@@ -5924,6 +5930,12 @@ void DrawRotRow(int count, byte * dest, byte * src)
 
 	if ((iGLOBAL_SCREENWIDTH == 320)||(iG_masked==true))  
 	{
+#ifdef C4ROTT
+		if (count > 0 && ROTT_ACCEL() > 0) {   /* c4: c4/accel.mjs's RA_ROTROW */
+			rott_rotrow(count, mr_xfrac, mr_yfrac, mr_xstep, mr_ystep, src, dest, 0);
+			return;
+		}
+#endif
 		while (count--) {
 			eax = edx >> 16;
 			if (eax < 256 && (ecx >> 16) < 512) {
@@ -6005,6 +6017,12 @@ void DrawMaskedRotRow(int count, byte * dest, byte * src)
 	xfrac = mr_xfrac;
 	yfrac = mr_yfrac;
 	
+#ifdef C4ROTT
+	if (count > 0 && ROTT_ACCEL() > 0) {   /* c4: c4/accel.mjs's RA_ROTROW */
+		rott_rotrow(count, xfrac, yfrac, mr_xstep, mr_ystep, src, dest, 1);
+		return;
+	}
+#endif
 	while (count--) {
 		eax = xfrac >> 16;
 		if (eax < 256 && (yfrac >> 16) < 512) {
@@ -6049,6 +6067,12 @@ void DrawSkyPost (byte * buf, byte * src, int height)
 	}
 	else {
 	// org code
+#ifdef C4ROTT
+		if (height > 0 && ROTT_ACCEL() > 0) {   /* c4: c4/accel.mjs's RA_SKY */
+			rott_sky(height, src, shadingtable, buf, linewidth);
+			return;
+		}
+#endif
 		while (height--) {
 			*buf = shadingtable[*src];
 			

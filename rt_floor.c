@@ -737,6 +737,12 @@ void DrawRow(int count, byte * dest, byte * src)
 	frac = (mr_yfrac<<16) + (mr_xfrac&0xffff);
 	fracstep = (mr_ystep<<16) + (mr_xstep&0xffff);
 
+#ifdef C4ROTT
+	if (count > 0 && ROTT_ACCEL() > 0) {   /* c4: c4/accel.mjs's RA_ROW */
+		rott_row(count, frac, fracstep, src, shadingtable, dest);
+		return;
+	}
+#endif
 	while (count--) {
 		/* extract the x/y coordinates */
 		coord = ((frac >> (32-7)) | ((frac >> (32-23)) << 7)) & 16383;
