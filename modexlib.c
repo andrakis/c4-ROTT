@@ -771,6 +771,21 @@ void DisableScreenStretch(void)
 }
 
 
+#ifdef C4ROTT
+// c4: before another resolution (rt_main.c, rott_set_resolution): the
+// 320x200 picture's surface, made at the old size, goes, and the screen
+// is the screen's own again
+void rott_video_reset (void)
+{
+   DisableScreenStretch ();
+   if (unstretch_sdl_surface != NULL)
+      {
+      SDL_FreeSurface (unstretch_sdl_surface);
+      unstretch_sdl_surface = NULL;
+      }
+}
+#endif
+
 // bna section -------------------------------------------
 static void StretchMemPicture ()
 {

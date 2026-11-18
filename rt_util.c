@@ -703,10 +703,13 @@ int SafeOpenRead (char *_filename)
 // does not have by its last part, at the root.) rott_dir is the first of
 // them with DARKWAR.WAD, and rott_data(NAME) is NAME there, as it is
 // spelt or in lower case (the Uploads make names lower case), or else
-// NAME as it was, the game's own (REMOTE1.RTS). Found by opening, not
-// stat(): on C4IX a name its filesystem does not have is the host's.
+// the game's own: REMOTE1.RTS, the shareware's, where the shareware is
+// (on C4IX /usr/games/rott/; rottreg plays in its darkwar folder there,
+// where a name as it was is not), or NAME as it was. Found by opening,
+// not stat(): on C4IX a name its filesystem does not have is the host's.
 char rott_dir[16];
 static int rott_dir_known;
+static int rott_on_c4ix;
 
 static int rott_opens (char *path)
 {
@@ -744,7 +747,8 @@ void rott_find_dir (void)
 	if (rott_dir_known)
 		return;
 	rott_dir_known = 1;
-	for (d = stat("/home", &st) == 0 ? c4ix : disk; *d; d++)
+	rott_on_c4ix = stat("/home", &st) == 0;
+	for (d = rott_on_c4ix ? c4ix : disk; *d; d++)
 		if ((p = rott_in(*d, "DARKWAR.WAD")))
 		{
 			free(p);
@@ -763,6 +767,8 @@ char *rott_data (char *name)
 	char *p;
 	rott_find_dir();
 	if ((p = rott_in(rott_dir, name)))
+		return p;
+	if (rott_on_c4ix && (p = rott_in("/usr/games/rott/", name)))
 		return p;
 	return name;
 }

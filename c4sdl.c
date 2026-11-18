@@ -124,6 +124,36 @@ SDL_Surface *SDL_SetVideoMode(int w, int h, int bpp, Uint32 flags) {
 SDL_Surface *SDL_GetVideoSurface(void) { return screen; }
 const SDL_VideoInfo *SDL_GetVideoInfo(void) { return &info; }
 
+// The screen again, as it is, in the palette just set: a VGA's palette
+// shows at once, and SDL 1.2 draws an 8-bit screen again when its colours
+// change. The game fades pictures in and out by the palette alone (the
+// registered game's opening cinematic, DoInBetweenCinematic: drawn and
+// flipped while the palette is black, then VL_FadeIn and a wait), and the
+// display kept the black frame. Not a frame of the game's: rott_frame does
+// not see it, so a timedemo's frames and checksum are as they were.
+// The screen on the display: 640x480 for 320x200 (the original's 4:3) and
+// 640x480, and above that the display asked to be the frame's size (GUI_W,
+// GUI_H), as Quake's resolutions are (Extended User Options' RESOLUTION)
+static int dw = W, dh = H;
+static void to_display(SDL_Surface *s) {
+	int w = s->w > W ? s->w : W, h = s->h > H ? s->h : H;
+	if (w != dw || h != dh) {
+		dw = w; dh = h;
+		*(int *) GUI_W = dw;
+		*(int *) GUI_H = dh;
+		gui_clear(0x000000);
+	}
+	gui_blit8(0, 0, s->w, s->h, (char *) s->pixels, s->pitch, (int *) palette, dw, dh);
+	gui_show();
+}
+
+static void show_palette(void) {
+	if (!screen || !screen->pixels) return;
+	if (win) { rott_win_draw((Uint8 *) screen->pixels, screen->w, screen->h, screen->pitch, palette); return; }
+	if (!on) return;
+	to_display(screen);
+}
+
 int SDL_SetColors(SDL_Surface *s, SDL_Color *c, int first, int n) {
 	int i;
 	(void) s;
@@ -131,6 +161,7 @@ int SDL_SetColors(SDL_Surface *s, SDL_Color *c, int first, int n) {
 		colors[first + i] = c[i];
 		palette[first + i] = ((Uint32) c[i].r << 16) | ((Uint32) c[i].g << 8) | c[i].b;
 	}
+	show_palette();
 	return 1;
 }
 int SDL_SetPalette(SDL_Surface *s, int flags, SDL_Color *c, int first, int n) {
@@ -145,8 +176,7 @@ void SDL_UpdateRect(SDL_Surface *s, Sint32 x, Sint32 y, Uint32 w, Uint32 h) {
 	rott_frame((Uint8 *) s->pixels, s->w, s->h, s->pitch, palette);
 	if (win) { rott_win_draw((Uint8 *) s->pixels, s->w, s->h, s->pitch, palette); rott_snd_poll(); return; }
 	if (!on) return;
-	gui_blit8(0, 0, s->w, s->h, (char *) s->pixels, s->pitch, (int *) palette, W, H);
-	gui_show();
+	to_display(s);
 	rott_snd_poll();
 }
 

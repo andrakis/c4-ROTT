@@ -37,8 +37,21 @@ void VW_MeasurePropString (const char *string, int *width, int *height );
 
 //void (*USL_MeasureString)(const char *, int *, int *, font_t *) = VW_MeasurePropString,
 //     (*USL_DrawString)(const char *) = VWB_DrawPropString;
+#ifdef C4ROTT
+// c4: the measure is called with four arguments, the font last, and
+// VW_MeasurePropString takes three. On x86 the extra one is left over; c4
+// pushes the arguments in order, so the function read the width's address
+// as the string, and the quit box's message measured millions wide:
+// MenuBufCPrintLine's Error ended the game as the box came up.
+// VWL_MeasureString is the same measure, the font passed (CurrentFont,
+// every caller's).
+void VWL_MeasureString (const char *s, int *width, int *height, const font_t *font);
+void (*USL_MeasureString)(const char *, int *, int *, font_t *) = (void (*)(const char *, int *, int *, font_t *))VWL_MeasureString,
+     (*USL_DrawString)(const char *) = VWB_DrawPropString;
+#else
 void (*USL_MeasureString)(const char *, int *, int *, font_t *) = (void (*)(const char *, int *, int *, font_t *))VW_MeasurePropString,
      (*USL_DrawString)(const char *) = VWB_DrawPropString;
+#endif
 
 
 #endif

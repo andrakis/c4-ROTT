@@ -121,8 +121,9 @@ Each is under `#ifdef C4ROTT`. Everything else is the port's own code.
   game's files where it runs, instead of in `~/.rott`, and has no glibc
   backtrace.
 - **320x200**, the original's size, is the default (`winrott.c`). It is a
-  fifth of the work of the port's 640x480, and a config can still ask for
-  more.
+  fifth of the work of the port's 640x480; Extended User Options'
+  RESOLUTION, a config or `RESOLUTION 640x480` on the command line can
+  ask for more ("Resolution", below).
 - **`--timedemo N`** (`rt_main.c`): the title loop plays demo N at once and
   quits when it ends, and the start-up screens are skipped. The random
   tables' seed is the wall clock's second, so while timing it is 0
@@ -158,6 +159,37 @@ Each is under `#ifdef C4ROTT`. Everything else is the port's own code.
   Options has ACCELERATED (`rt_menu.c`), kept in the config
   (`rt_cfg.c`). Turning the screen copies it a row at a time with
   `memcpy`, one instruction, not a byte at a time (`rt_draw.c`).
+- **Calls with the arguments their functions take.** c4 pushes a call's
+  arguments in order, so a function given more than it declares reads
+  the wrong ones, where x86's convention leaves the extra ones over.
+  The string measure is called with four (the font last) and was
+  `VW_MeasurePropString`, which takes three: it took the width's address
+  for the string, and the quit box's message ("Press Y to ...") measured
+  millions wide, so `MenuBufCPrintLine`'s `Error` ended the game as the box
+  came up, at the Escape that asks it. It is now `VWL_MeasureString`, the
+  same measure with the font passed (`_rt_str.h`). The main menu's Restore
+  Game called `CP_LoadGame (quick, dieload)` with one argument, its
+  `quick` what lay beyond it; it has a one-argument item of its own
+  (`rt_menu.c`).
+- **A palette shows at once** (`c4sdl.c`): a VGA's does, and SDL 1.2
+  draws an 8-bit screen again when its colours change. The game fades
+  pictures in by the palette alone, and the display kept the frame flipped
+  while the palette was black: the registered game's opening cinematic
+  (`PlayCinematic`, `DoInBetweenCinematic`) was a black screen with its
+  sounds. The screen goes to the display again on a palette change, not
+  as a frame of the game's: a timedemo's frames and checksum are as they
+  were.
+- **The registered game's REMOTE1.RTS**, when the person has none, is the
+  shareware's: on C4IX `rottreg` plays in `/usr/games/rott/darkwar`, so it
+  is looked for in `/usr/games/rott/`, where the shareware is (`rt_util.c`).
+- **RESOLUTION** in Extended User Options ("Resolution", below):
+  `rott_set_resolution` (`rt_main.c`) makes the screen again at the new
+  size (`modexlib.c`'s `rott_video_reset`, `VL_SetVGAPlaneMode`), the view
+  (`SetViewSize`, 320x200's view sizes kept in `rt_view.c` for coming
+  back to it) and the weapon's scale, and the menus' own 320x200 view
+  (`rt_build.c`); `c4sdl.c` asks the display to be the frame's size above
+  640x480, and the windows take a frame of any size (`rott-c4ix.c`,
+  `rott-bare.c`).
 
 ## C4 bugs it found
 
@@ -241,6 +273,19 @@ instructions on average where it was 3.6 to 4.2 M, and the worst 2.6 to
 2.9 M where it was 11.5 M; 0.89 M of each is the timedemo's own
 checksum, so a frame a player sees is a fifth or less of what it was
 (`docs/accel.md`, section 4.4).
+
+### Resolution
+
+Options, Extended User Options, **RESOLUTION** opens a menu of the port's
+three sizes, 320x200 (the original's, and what the timedemos and tests
+are made at), 640x480 and 800x600, the one in use marked. A choice takes
+at once, in the menus or in a game; the config keeps it
+(`ScreenWidth`, `ScreenHeight`) where the disk takes writes, and
+`RESOLUTION 640x480` on the command line asks for one at the start. The
+display shows 320x200 and 640x480 at 640x480, and becomes 800x600 for
+800x600. The menus stay the original's 320x200, scaled. Bigger frames are
+more to draw, the accelerators' at every size (demo 4 gives gcc's frames
+at 640x480 and 800x600 too, with them and without).
 
 ## Sound
 

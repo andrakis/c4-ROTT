@@ -440,6 +440,30 @@ void ShutdownMenuBuf ( void )
       SetViewSize(viewsize);
 }
 
+#ifdef C4ROTT
+//******************************************************************************
+//
+// c4: the menus' view again after another resolution (rt_main.c,
+// rott_set_resolution, from Extended User Options' RESOLUTION): the game's
+// view was made for the new screen (SetViewSize), and the menus draw
+// their panel in a 320x200 one of their own, as SetupMenuBuf sets it, over
+// a background drawn again at the new size
+//
+//******************************************************************************
+
+void rott_menubuf_resized ( void )
+{
+   if (MenuBufStarted==false)
+      return;
+   centery=100;
+   centeryfrac=centery<<16;
+   screenofs=0;
+   viewwidth=320;
+   viewheight=200;
+   BackgroundDrawn=false;
+}
+#endif
+
 //******************************************************************************
 //
 // SetupMenuBuf

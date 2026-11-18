@@ -387,12 +387,27 @@ CP_MenuNames MainMenuNames[] =
    "QUIT"
    };
 
+#ifdef C4ROTT
+// c4: a menu item's routine is called with one argument (menuptr), and
+// CP_LoadGame takes two: c4 pushes them in order, so its quick was what lay
+// beyond the one. From the menu it is neither quick nor a dead player's.
+static void CP_LoadGameItem (int which)
+{
+   (void) which;
+   CP_LoadGame (0, 0);
+}
+#endif
+
 CP_iteminfo MainItems  = { MENU_X, MENU_Y + 1, 9, STARTITEM, 32, MainMenuNames, mn_largefont };
 CP_itemtype MainMenu[] =
    {
       { CP_CursorLocation, "mm_opt1\0",  'N', (menuptr)CP_NewGame },
       { CP_Active,         "battle\0",   'C', (menuptr)CP_BattleModes },
+#ifdef C4ROTT
+      { CP_Active,         "mm_opt2\0",  'R', (menuptr)CP_LoadGameItem },
+#else
       { CP_Active,         "mm_opt2\0",  'R', (menuptr)CP_LoadGame },
+#endif
       { CP_Inactive,       "mm_opt3\0",  'S', (menuptr)CP_SaveGame },
       { CP_Active,         "mm_opt5\0",  'O', (menuptr)CP_ControlMenu },
       { CP_Active,         "ordrinfo\0", 'O', (menuptr)CP_OrderInfo },
@@ -757,9 +772,11 @@ CP_MenuNames ExtOptionsNames[] =
    "CROSS HAIR",
    "JUMPING",
    "FULLSCREEN",
-   "ACCELERATED"   // c4: the machine's accelerators (c4/accel.mjs)
+   "ACCELERATED",  // c4: the machine's accelerators (c4/accel.mjs)
+   "RESOLUTION"    // c4: 320x200, 640x480 or 800x600 (CP_ResolutionMenu)
    };
-CP_iteminfo ExtOptionsItems = { 20, MENU_Y, 6, 0, 43, ExtOptionsNames, mn_largefont };
+CP_iteminfo ExtOptionsItems = { 20, MENU_Y, 7, 0, 43, ExtOptionsNames, mn_largefont };
+void CP_ResolutionMenu (void);   // c4
 
 CP_itemtype ExtOptionsMenu[] =
 {
@@ -768,8 +785,29 @@ CP_itemtype ExtOptionsMenu[] =
    {1, "", 'C', NULL},
    {1, "", 'J', NULL},
    {1, "", 'F', NULL},
-   {1, "", 'B', NULL}
+   {1, "", 'B', NULL},
+   {1, "", 'R', (menuptr)CP_ResolutionMenu}
 };
+
+#ifdef C4ROTT
+// c4: RESOLUTION's own menu, as Detail Levels' is: the port's three sizes,
+// the one in use marked, taking at once (rt_main.c, rott_set_resolution)
+CP_MenuNames ResolutionNames[] =
+   {
+   "320 X 200",
+   "640 X 480",
+   "800 X 600"
+   };
+CP_iteminfo ResolutionItems = { 32, 64, 3, 0, 43, ResolutionNames, mn_largefont };
+CP_itemtype ResolutionMenu[] =
+{
+   {1, "", '3', NULL},
+   {1, "", '6', NULL},
+   {1, "", '8', NULL}
+};
+static int ResolutionNums[3] = { 0, 1, 2 };
+static int resolution_w[3] = { 320, 640, 800 }, resolution_h[3] = { 200, 480, 600 };
+#endif
    
 //bna added end
 
@@ -5422,6 +5460,58 @@ void CP_ExtOptionsMenu (void)
 
    DrawControlMenu();
 }
+#ifdef C4ROTT
+static int ResolutionNow (void)
+{
+   int i;
+   for (i = 0; i < 3; i++)
+      if (resolution_w[i] == iGLOBAL_SCREENWIDTH && resolution_h[i] == iGLOBAL_SCREENHEIGHT)
+         return i;
+   return -1;
+}
+
+static void DrawResolutionMenu (void)
+{
+   MenuNum = 1;
+
+   SetAlternateMenuBuf();
+   ClearMenuBuf();
+   SetMenuTitle ("Resolution");
+
+   MN_DrawButtons (&ResolutionItems, &ResolutionMenu[0], ResolutionNow (), ResolutionNums);
+   MN_GetCursorLocation( &ResolutionItems, &ResolutionMenu[ 0 ] );
+   DrawMenu (&ResolutionItems, &ResolutionMenu[0]);
+   DisplayInfo (0);
+   FlipMenuBuf();
+}
+
+void rott_set_resolution (int w, int h);   // rt_main.c
+
+void CP_ResolutionMenu (void)
+{
+   int which;
+
+   DrawResolutionMenu ();
+
+   do
+   {
+      which = HandleMenu (&ResolutionItems, &ResolutionMenu[0], NULL);
+
+      if (which >= 0 && which < 3 && which != ResolutionNow ())
+      {
+         rott_set_resolution (resolution_w[which], resolution_h[which]);
+         DrawResolutionMenu ();
+      }
+
+   } while (which >= 0);
+
+   // as CP_DetailMenu: what the menu just left in handlewhich is no item
+   // of Extended User Options (its HandleMenu returns it)
+   handlewhich = 10;
+   DrawExtOptionsMenu();
+}
+#endif
+
 void DrawExtOptionsButtons (void)
 {
    int i,
@@ -5450,6 +5540,7 @@ void DrawExtOptionsButtons (void)
             case 4: if (sdl_fullscreen== 1) on = 1; break;
 #ifdef C4ROTT
             case 5: if (rott_accel_on && rott_accel_avail()) on = 1; break;
+            case 6: continue;   // a menu of its own, no button
 #endif
          }
 

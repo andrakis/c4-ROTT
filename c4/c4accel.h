@@ -35,10 +35,10 @@ extern int rott_accel_on;        /* ACCELERATED, in the config */
 	__c4_opcode((n), (shade), (dest), (stride), RA_OP(RA_TRANS))
 #define rott_row(n, frac, step, src, shade, dest) \
 	__c4_opcode((n), (frac), (step), (src), (shade), (dest), RA_OP(RA_ROW))
-#define rott_rotrow(n, xfrac, yfrac, xstep, ystep, src, dest, masked) \
-	__c4_opcode((n), (xfrac), (yfrac), (xstep), (ystep), (src), (dest), (masked), RA_OP(RA_ROTROW))
-#define rott_sky(n, src, shade, dest, stride) \
-	__c4_opcode((n), (src), (shade), (dest), (stride), RA_OP(RA_SKY))
+#define rott_rotrow(n, xfrac, yfrac, xstep, ystep, src, dest, masked, xlim, ylim, sh) \
+	__c4_opcode((n), (xfrac), (yfrac), (xstep), (ystep), (src), (dest), (masked), (xlim), (ylim), (sh), RA_OP(RA_ROTROW))
+#define rott_sky(n, src, shade, dest, stride, orgh) \
+	__c4_opcode((n), (src), (shade), (dest), (stride), (orgh), RA_OP(RA_SKY))
 /* watcom.c's: FixedMul, FixedMulShift for 0 < s < 32, FixedDiv2 for b
    not 0, FixedScale for c not 0 */
 #define rott_fixmul(a, b) __c4_opcode((a), (b), RA_OP(RA_FIXMUL))
@@ -58,8 +58,8 @@ extern int rott_accel_on;        /* ACCELERATED, in the config */
 #define rott_col(n, frac, step, sh, sgn, src, shade, dest, stride) 0
 #define rott_trans(n, shade, dest, stride) 0
 #define rott_row(n, frac, step, src, shade, dest) 0
-#define rott_rotrow(n, xfrac, yfrac, xstep, ystep, src, dest, masked) 0
-#define rott_sky(n, src, shade, dest, stride) 0
+#define rott_rotrow(n, xfrac, yfrac, xstep, ystep, src, dest, masked, xlim, ylim, sh) 0
+#define rott_sky(n, src, shade, dest, stride, orgh) 0
 #define rott_fixmul(a, b) 0
 #define rott_fixmulshift(a, b, s) 0
 #define rott_fixdiv2(a, b) 0
