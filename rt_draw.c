@@ -5932,7 +5932,7 @@ void DrawRotRow(int count, byte * dest, byte * src)
 	{
 #ifdef C4ROTT
 		if (count > 0 && ROTT_ACCEL() > 0) {   /* c4: c4/accel.mjs's RA_ROTROW */
-			rott_rotrow(count, mr_xfrac, mr_yfrac, mr_xstep, mr_ystep, src, dest, 0);
+			rott_rotrow(count, mr_xfrac, mr_yfrac, mr_xstep, mr_ystep, src, dest, 0, 256, 512, 9);
 			return;
 		}
 #endif
@@ -5950,6 +5950,13 @@ void DrawRotRow(int count, byte * dest, byte * src)
 			ecx += mr_ystep;
 		}
 	}else if (iGLOBAL_SCREENWIDTH == 640) {
+#ifdef C4ROTT
+		// c4: x below 512, y below 512*1.8 (921.6: 921 and less)
+		if (count > 0 && ROTT_ACCEL() > 0) {   /* c4: c4/accel.mjs's RA_ROTROW */
+			rott_rotrow(count, mr_xfrac, mr_yfrac, mr_xstep, mr_ystep, src, dest, 0, 512, 922, 10);
+			return;
+		}
+#endif
 		while (count--) {
 			eax = edx >> 16;
 			if (eax < (256*2.0) && (ecx >> 16) < (512*1.8)) {
@@ -5974,6 +5981,12 @@ void DrawRotRow(int count, byte * dest, byte * src)
 
 	ecx = mr_yfrac;
 	edx = mr_xfrac;
+#ifdef C4ROTT
+	if (count > 0 && ROTT_ACCEL() > 0) {   /* c4: c4/accel.mjs's RA_ROTROW */
+		rott_rotrow(count, mr_xfrac, mr_yfrac, mr_xstep, mr_ystep, srctmp, desttmp, 0, 640, 1024, 10);
+		return;
+	}
+#endif
 	//count = 800
 //zxcv
 	while (count--) { 
@@ -6019,7 +6032,7 @@ void DrawMaskedRotRow(int count, byte * dest, byte * src)
 	
 #ifdef C4ROTT
 	if (count > 0 && ROTT_ACCEL() > 0) {   /* c4: c4/accel.mjs's RA_ROTROW */
-		rott_rotrow(count, xfrac, yfrac, mr_xstep, mr_ystep, src, dest, 1);
+		rott_rotrow(count, xfrac, yfrac, mr_xstep, mr_ystep, src, dest, 1, 256, 512, 9);
 		return;
 	}
 #endif
@@ -6051,6 +6064,12 @@ void DrawSkyPost (byte * buf, byte * src, int height)
 		//int n = 0;
 		int orgh = 0;//height;
 		if (height > 400){orgh=height;}
+#ifdef C4ROTT
+		if (height > 0 && ROTT_ACCEL() > 0) {   /* c4: c4/accel.mjs's RA_SKY */
+			rott_sky(height, src, shadingtable, buf, linewidth, orgh);
+			return;
+		}
+#endif
 
 		while (height--) {
 			if ((orgh > 0)&&( height<(orgh-400))){
@@ -6069,7 +6088,7 @@ void DrawSkyPost (byte * buf, byte * src, int height)
 	// org code
 #ifdef C4ROTT
 		if (height > 0 && ROTT_ACCEL() > 0) {   /* c4: c4/accel.mjs's RA_SKY */
-			rott_sky(height, src, shadingtable, buf, linewidth);
+			rott_sky(height, src, shadingtable, buf, linewidth, 0);
 			return;
 		}
 #endif

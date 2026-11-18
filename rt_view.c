@@ -18,6 +18,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 #include "rt_def.h"
+#include <string.h>
 #include "rt_view.h"
 #include "z_zone.h"
 #include "w_wad.h"
@@ -304,6 +305,15 @@ void SetViewSize
    }
 */
 
+#ifdef C4ROTT
+	// c4: the table is 320x200's until a bigger screen writes over it;
+	// kept, for a change back to it (RESOLUTION, rt_menu.c)
+	{
+	static int viewsizes320[MAXVIEWSIZES*2], kept;
+	if (!kept) { memcpy(viewsizes320, viewsizes, sizeof(viewsizes320)); kept = 1; }
+	if (iGLOBAL_SCREENWIDTH == 320) memcpy(viewsizes, viewsizes320, sizeof(viewsizes320));
+	}
+#endif
 	if ( iGLOBAL_SCREENWIDTH == 640) {
 		height = 0;//we use height as dummy cnt
 		viewsizes[height++]= 380; viewsizes[height++]= 336;

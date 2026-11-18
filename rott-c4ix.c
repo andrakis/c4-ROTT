@@ -64,7 +64,17 @@ static void send_frame(int b) {
 }
 void rott_win_draw(uint8_t *pixels, int w, int h, int pitch, uint32_t *palette) {
 	int b, y;
-	if (closed || w != fw || h != fh) return;
+	if (closed) return;
+	// another resolution (RESOLUTION, rt_menu.c): new buffers, once the
+	// desktop has drawn what it was given from the old ones
+	if (w != fw || h != fh) {
+		if (waiting) return;
+		for (b = 0; b < 2; b++) {
+			free(fbuf[b]);
+			if (!(fbuf[b] = (char *) calloc(w * h, 1))) { closed = 1; return; }
+		}
+		fw = w; fh = h; pending = 0;
+	}
 	b = waiting ? 1 - sent : sent;
 	for (y = 0; y < h; y++) memcpy(fbuf[b] + y * w, pixels + y * pitch, w);
 	memcpy(fpal[b], palette, 256 * sizeof(int));

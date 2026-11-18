@@ -3433,6 +3433,27 @@ int PutBytes (unsigned char *ptr, unsigned int bytes)
 //
 //****************************************************************************
 
+#ifdef C4ROTT
+// c4: Extended User Options' RESOLUTION (rt_menu.c), at once: the port's
+// own 320x200, 640x480 and 800x600, as a config's ScreenWidth and
+// ScreenHeight choose them at the start (kept in it when the game ends).
+// The screen made again, its tables, the view and the weapon's scale for
+// the size; the game draws the rest itself when the menu goes.
+void rott_video_reset (void);   // modexlib.c
+void rott_menubuf_resized (void);   // rt_build.c
+void rott_set_resolution (int w, int h)
+{
+   if ((w == iGLOBAL_SCREENWIDTH) && (h == iGLOBAL_SCREENHEIGHT))
+      return;
+   rott_video_reset ();
+   SetRottScreenRes (w, h);
+   G_weaponscale = (w == 320) ? 168 : (w == 640) ? 299 : 376;
+   VL_SetVGAPlaneMode ();
+   SetViewSize (viewsize);
+   rott_menubuf_resized ();
+}
+#endif
+
 void PlayCinematic (void)
 {
 

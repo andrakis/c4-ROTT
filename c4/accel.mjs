@@ -52,29 +52,39 @@ export default function rott({ reader, writer, reader32, writer32, probe, args }
     return 0;
   }
 
-  // RA_ROTROW (n, xfrac, yfrac, xstep, ystep, src, dest, masked): the
-  // turned screen's row at 320 across, DrawRotRow and DrawMaskedRotRow, out
-  // of the 256x512 image: inside it, (x << 9) | y, else texel 0; the masked
-  // one leaves 255 out
+  // RA_ROTROW (n, xfrac, yfrac, xstep, ystep, src, dest, masked, xlim,
+  // ylim, sh): the turned screen's row, DrawRotRow and DrawMaskedRotRow,
+  // out of the image: inside it (x below xlim, y below ylim), (x << sh) |
+  // the top sh bits of y's fraction, else texel 0; the masked one leaves
+  // 255 out. At 320 across 256, 512, 9; at 640 512, 922, 10 (y < 512 *
+  // 1.8); at 800 640, 1024, 10.
   function rotrow(m) {
-    let [n, xf, yf, xs, ys, src, dest, masked] = args(m, 8);
+    let [n, xf, yf, xs, ys, src, dest, masked, xlim, ylim, sh] = args(m, 11);
+    sh &= 31;
+    const yl = (16 - sh) & 31, yr = (32 - sh) & 31;
     const rs = reader(m), wr = writer(m);
     for (; n > 0; n--, dest = (dest + 1) | 0, xf = (xf + xs) | 0, yf = (yf + ys) | 0) {
       const x = xf >>> 16;
-      const e = x < 256 && (yf >>> 16) < 512 ? ((x << 9) | ((yf << 7) >>> 23)) : 0;
+      const e = x < xlim && (yf >>> 16) < ylim ? ((x << sh) | ((yf << yl) >>> yr)) : 0;
       const c = rs((src + e) | 0);
       if (!masked || c !== 255) wr(dest, c);
     }
     return 0;
   }
 
-  // RA_SKY (n, src, shade, dest, stride): DrawSkyPost at 320 across,
-  // *dest = shade[*src++]; dest += stride
+  // RA_SKY (n, src, shade, dest, stride, orgh): DrawSkyPost, *dest =
+  // shade[*src++]; dest += stride. Above 320 across a post taller than the
+  // sky's 400 (orgh, else 0) goes back over the sky for its last orgh -
+  // 400 pixels, two texels back each (the port's "bna fix")
   function sky(m) {
-    let [n, src, shade, dest, stride] = args(m, 5);
+    let [n, src, shade, dest, stride, orgh] = args(m, 6);
     const rs = reader(m), rp = reader(m), wr = writer(m);
-    for (; n > 0; n--, dest = (dest + stride) | 0, src = (src + 1) | 0)
+    while (n-- > 0) {
+      if (orgh > 0 && n < orgh - 400) src = (src - 2) | 0;
       wr(dest, rp((shade + rs(src)) | 0));
+      dest = (dest + stride) | 0;
+      src = (src + 1) | 0;
+    }
     return 0;
   }
 

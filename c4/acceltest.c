@@ -98,40 +98,53 @@ void test_row() {
     }
 }
 
-// DrawRotRow at 320 and DrawMaskedRotRow
+// DrawRotRow at 320, 640 and 800 across, and DrawMaskedRotRow
 void test_rotrow() {
-    int k, n, y, c, masked;
+    static int xlims[3] = { 256, 512, 640 }, ylims[3] = { 512, 922, 1024 }, shs[3] = { 9, 10, 10 };
+    int k, n, y, c, masked, r, sh;
     unsigned xf, yf, xs, ys, eax, ex, ey;
     unsigned char *d;
-    for (k = 0; k < 400; k++) {
+    for (k = 0; k < 600; k++) {
         clear();
         masked = k & 1;
+        r = masked ? 0 : (k >> 1) % 3; sh = shs[r];
         y = rnd(H); n = rnd(W + 1);
         xf = (unsigned)rnd(1 << 26) * 8 - (1 << 26); yf = (unsigned)rnd(1 << 26) * 16 - (1 << 27);
         xs = (unsigned)(rnd(1 << 18) - (1 << 17)); ys = (unsigned)(rnd(1 << 18) - (1 << 17));
         ex = xf; ey = yf; d = bufc + y * W; c = n;
         while (c--) {
             eax = ex >> 16;
-            if (eax < 256 && (ey >> 16) < 512) eax = (eax << 9) | ((ey << 7) >> (32-9));
+            if (eax < (unsigned)xlims[r] && (ey >> 16) < (unsigned)ylims[r]) eax = (eax << sh) | ((ey << (16 - sh)) >> (32 - sh));
             else eax = 0;
             if (!masked || tex[eax] != 0xff) *d = tex[eax];
             d++;
             ex += xs; ey += ys;
         }
-        if (n > 0) rott_rotrow(n, xf, yf, xs, ys, tex, bufa + y * W, masked);
+        if (n > 0) rott_rotrow(n, xf, yf, xs, ys, tex, bufa + y * W, masked, xlims[r], ylims[r], sh);
         check(masked ? "rotrow (masked)" : "rotrow", k);
     }
 }
 
-// DrawSkyPost at 320
+// DrawSkyPost at 320, and above it with its posts taller than 400 (a
+// column 2 bytes wide here, so that 600 rows fit the buffer)
 void test_sky() {
-    int k, n, x, y, i;
+    int k, n, x, y, i, orgh, stride, height;
     unsigned char *d, *s, *src;
-    for (k = 0; k < 200; k++) {
+    for (k = 0; k < 300; k++) {
         clear();
-        y = rnd(H); n = rnd(H - y + 1); x = rnd(W); src = tex + rnd(65536);
-        for (d = bufc + x + y * W, s = src, i = n; i--; d += W) *d = shade[*s++];
-        if (n > 0) rott_sky(n, src, shade, bufa + x + y * W, W);
+        src = tex + 4096 + rnd(65536);
+        if (k % 3 == 2) {
+            stride = 2; y = 0; x = rnd(2); n = 401 + rnd(199); orgh = n;
+            for (d = bufc + x, s = src, height = n; height--; d += stride) {
+                if (orgh > 0 && height < orgh - 400) { s -= 2; *d = shade[*s]; }
+                else *d = shade[*s];
+                s++;
+            }
+        } else {
+            stride = W; y = rnd(H); n = rnd(H - y + 1); x = rnd(W); orgh = 0;
+            for (d = bufc + x + y * W, s = src, i = n; i--; d += W) *d = shade[*s++];
+        }
+        if (n > 0) rott_sky(n, src, shade, bufa + x + y * stride, stride, orgh);
         check("sky", k);
     }
 }

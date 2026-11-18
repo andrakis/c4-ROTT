@@ -46,7 +46,7 @@ int rott_win_open(int w, int h) {
 	return (g = grin()) != 0 && g->fwin_open("Rise of the Triad", w, h, 1);
 }
 void rott_win_draw(uint8_t *pixels, int w, int h, int pitch, uint32_t *palette) {
-	if (g && w == fw && h == fh) g->fwin_frame((char *) pixels, w, h, pitch, (int *) palette);
+	if (g) { fw = w; fh = h; g->fwin_frame((char *) pixels, w, h, pitch, (int *) palette); }
 }
 // its next event, the mouse's in the display's 640x480 as c4sdl.c reads it
 int rott_win_poll(int *ev) {
