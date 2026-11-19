@@ -75,7 +75,11 @@ PHONY += rott-data
 # on its OPL (cli.js --wav fits one), and with a General MIDI synth on
 # its MIDI port (--midi, rott-snd.c). With sound or without, the frames
 # are the gcc build's (README.md, "Sound and the timedemo"), and the
-# MIDI run must play the music, drums and all (midi-notes.mjs).
+# MIDI run must play the music, drums and all (midi-notes.mjs). The OPL
+# run must play its music too (cli.js -s: the OPL's level), and so must
+# one under C4DOS after Doom: Doom turns the card's OPL3 mode on, where
+# al_midi.c's OPL2 voices are silent, and before the fix nothing turned
+# it back off, so ROTT's music (Duke3D's too) was silent until a reset.
 ROTT_DEMO := 4
 # c4's port: ROTT's accelerators (c4/accel.mjs) against their loops, on the
 # bare machine, with libjs's own (cli.js loads them, docs/accel.md). In a
@@ -88,7 +92,7 @@ ROTT_DEMO := 4
 	$(ROTT_CC) $< $@ > /dev/null
 .rott/test/acceltest.c4r: .rott/test/acceltest.c4o libc-bare-objs
 	./c4rlink32 $< .libc-bare/libc-*.c4o -o $@ > /dev/null
-test-rott: rott-data rott-host c4bb-images .rott/test/acceltest.c4r
+test-rott: rott-data rott-host doom-data c4bb-images .rott/test/acceltest.c4r
 	@rm -rf .rott_t && mkdir -p .rott_t && \
 	 { timeout 600 node libjs/cli.js -m 64 .rott/test/acceltest.c4r > .rott_t/accel.txt 2>&1; cat .rott_t/accel.txt; } && \
 	 { grep -q "^accel: ROTT's, [0-9]* cases, each as its loop has it" .rott_t/accel.txt \
@@ -101,14 +105,23 @@ test-rott: rott-data rott-host c4bb-images .rott/test/acceltest.c4r
 	     > ../../../../.rott_t/bare.out 2>/dev/null & \
 	   printf 'rott --timedemo $(ROTT_DEMO) NOSOUND\nver\n' | timeout 1500 node ../../../../libjs/cli.js -m 64 -d . ../c4dos32.c4r \
 	     > ../../../../.rott_t/dos.out 2>/dev/null; wait; } ) && \
-	 ( { cd src/c4bb/images/games && timeout 1500 node ../../../../libjs/cli.js -m 64 -d . --wav ../../../../.rott_t/opl.wav rott.c4r \
-	       --timedemo $(ROTT_DEMO) > ../../../../.rott_t/opl.out 2>/dev/null; } & \
+	 ( { cd src/c4bb/images/games && timeout 1500 node ../../../../libjs/cli.js -s -m 64 -d . --wav ../../../../.rott_t/opl.wav rott.c4r \
+	       --timedemo $(ROTT_DEMO) > ../../../../.rott_t/opl.out 2> ../../../../.rott_t/opl.err; } & \
+	   { cd src/c4bb/images/games && printf 'doom -timedemo nosuchdemo -nosfx\nrott --timedemo $(ROTT_DEMO)\nver\n' | \
+	       timeout 1500 node ../../../../libjs/cli.js -s -m 64 -d . --wav ../../../../.rott_t/after.wav ../c4dos32.c4r \
+	       > ../../../../.rott_t/after.out 2> ../../../../.rott_t/after.err; } & \
 	   { cd src/c4bb/images/games && timeout 1500 node ../../../../libjs/cli.js --no-accel -m 64 -d . --midi ../../../../.rott_t/gm.txt rott.c4r \
 	       --timedemo $(ROTT_DEMO) > ../../../../.rott_t/gm.out 2>/dev/null; } & \
 	   printf 'rott --timedemo $(ROTT_DEMO) NOSOUND\nexit\n' | timeout 1500 node libjs/cli.js -m 64 -d src/c4bb/images/disk src/c4bb/images/c4ix32.c4r \
 	     2>/dev/null > .rott_t/c4ix.out; wait ) && \
 	 for w in bare dos c4ix opl gm; do grep '^timedemo' .rott_t/$$w.out | cmp -s .rott_t/host.txt - \
 	   || { echo "test-rott: $$w's frames differ:"; tail -5 .rott_t/$$w.out; exit 1; }; done && \
+	 { grep '^timedemo: demo' .rott_t/after.out | cmp -s .rott_t/host.txt - \
+	   || { echo "test-rott: after Doom, the frames differ:"; tail -5 .rott_t/after.out; exit 1; }; } && \
+	 for w in opl after; do l=$$(sed -n "s/^libjs: sound: the OPL's level \([0-9]*\) RMS.*/\1/p" .rott_t/$$w.err); \
+	   if [ "$${l:-0}" -ge 200 ]; then echo "test-rott: $$w: the AdLib music plays, the OPL's level $$l RMS"; \
+	   else echo "test-rott: $$w: the AdLib music is silent (the OPL's level $${l:-unknown} RMS):"; \
+	     grep '^libjs: sound' .rott_t/$$w.err; exit 1; fi; done && \
 	 { m=$$(node libjs/tests/src/midi-notes.mjs .rott_t/gm.txt 1000 4) && echo "test-rott: General MIDI: $$m" \
 	   || { echo "test-rott: the General MIDI music did not play: $$m"; exit 1; }; } && \
 	 { grep -A1 '^timedemo' .rott_t/dos.out | grep -Eq '^A(:\\)?>C4DOS version' \
