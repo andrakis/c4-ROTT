@@ -469,7 +469,13 @@ void UpdateMessages
 void DisplayMessage   (int num,int position)
    {
    PrintX = 1;
+#ifdef C4ROTT
+   // c4: twice as far apart where the font is the bigger one (SetMessage):
+   // 640 across and more, not 400 or 512 (WinRott.h)
+   if (iGLOBAL_SCREENWIDTH >= 640){
+#else
    if (iGLOBAL_SCREENWIDTH > 320){
+#endif
 		PrintY = 2 + ( position * (9*2) );
    }else{
 		PrintY = 2 + ( position * (9*1) );
@@ -522,6 +528,9 @@ void DisplayMessage   (int num,int position)
 		 }else if ( iGLOBAL_SCREENWIDTH == 800) {
 			PrintX += 8 * 8*2;
 		 }
+#ifdef C4ROTT
+		 else PrintX += 8 * 8;   // c4: 400 and 512 across, the small font
+#endif
 
          fontcolor = egacolor[ LIGHTGRAY ];
          break;

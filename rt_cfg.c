@@ -546,6 +546,14 @@ boolean ParseConfigFile (void)
       // Read in resolution
       ReadInt("ScreenWidth", &iGLOBAL_SCREENWIDTH);
       ReadInt("ScreenHeight", &iGLOBAL_SCREENHEIGHT);
+#ifdef C4ROTT
+      // c4: one of the port's sizes (winrott.c), else the original's
+      if (!rott_size_ok (iGLOBAL_SCREENWIDTH, iGLOBAL_SCREENHEIGHT))
+         {
+         iGLOBAL_SCREENWIDTH = 320;
+         iGLOBAL_SCREENHEIGHT = 200;
+         }
+#endif
 
       // Read in ViewSize
 
@@ -555,6 +563,9 @@ boolean ParseConfigFile (void)
 
       ReadInt("Weaponscale",&G_weaponscale);//bna added
 	   if ((G_weaponscale <150)||(G_weaponscale>600)){
+#ifdef C4ROTT
+		   G_weaponscale = rott_default_weaponscale ();   // c4: winrott.c, every size
+#else
 		   if (iGLOBAL_SCREENWIDTH == 320){
 				G_weaponscale=168;
 		   }else if (iGLOBAL_SCREENWIDTH == 640){
@@ -562,6 +573,7 @@ boolean ParseConfigFile (void)
 		   }else if (iGLOBAL_SCREENWIDTH == 800) {
 				G_weaponscale=376;
 		   }	   
+#endif
 	   }
 
       // Read in MouseAdjustment
@@ -1848,6 +1860,9 @@ void WriteConfig (void)
    G_weaponscale = (weaponscale * 168 )/65536;
 
    if ((G_weaponscale <150)||(G_weaponscale>600)){
+#ifdef C4ROTT
+	   G_weaponscale = rott_default_weaponscale ();   // c4: winrott.c, every size
+#else
 	   if (iGLOBAL_SCREENWIDTH == 320){
 			G_weaponscale=168;
 	   }else if (iGLOBAL_SCREENWIDTH == 640){
@@ -1855,6 +1870,7 @@ void WriteConfig (void)
 	   }else if (iGLOBAL_SCREENWIDTH == 800) {
 			G_weaponscale=376;
 	   }	   
+#endif
    }
    WriteParameter(file,"Weaponscale         ",G_weaponscale);
 

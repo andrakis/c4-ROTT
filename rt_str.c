@@ -1522,7 +1522,13 @@ void DrawIntensityChar  ( char ch )
 
    mask = 1 << ( px & 3 );
 
+#ifdef C4ROTT
+   // c4: doubled at 640 across and more, as the messages' font is the
+   // bigger one there (rt_msg.c): not at 400 or 512 (WinRott.h)
+   if ((iGLOBAL_SCREENWIDTH < 640)||(StretchScreen == true)){
+#else
    if ((iGLOBAL_SCREENWIDTH <= 320)||(StretchScreen == true)){
+#endif
 	   while( width-- )
 	   {
 		  VGAMAPMASK( mask );

@@ -441,7 +441,7 @@ void DoWarp (void)
    ShutdownMenuBuf();
 
    	//bna++ section
-  if (( playstate == ex_stillplaying )&&(iGLOBAL_SCREENWIDTH > 320)){
+  if (( playstate == ex_stillplaying )&&!(iGLOBAL_SCREENWIDTH == 320 && iGLOBAL_SCREENHEIGHT == 200)){
 		pic_t *shape;
 		shape =  ( pic_t * )W_CacheLumpName( "backtile", PU_CACHE, Cvt_pic_t, 1 );
 		DrawTiledRegion( 0, 16, iGLOBAL_SCREENWIDTH, iGLOBAL_SCREENHEIGHT - 32, 0, 16, shape );
@@ -493,7 +493,7 @@ void DoWarp (void)
 void DoJukeBox  (void)
 
    {
-	if (iGLOBAL_SCREENWIDTH > 320) {
+	if (!(iGLOBAL_SCREENWIDTH == 320 && iGLOBAL_SCREENHEIGHT == 200)) {
 		EnableScreenStretch();//bna++ shut on streech mode
 	}
    StopWind();
@@ -508,7 +508,7 @@ void DoJukeBox  (void)
    ShutdownMenuBuf();
 
    	//bna++ section
-  if (( playstate == ex_stillplaying )&&(iGLOBAL_SCREENWIDTH > 320)){
+  if (( playstate == ex_stillplaying )&&!(iGLOBAL_SCREENWIDTH == 320 && iGLOBAL_SCREENHEIGHT == 200)){
 		pic_t *shape;
 		shape =  ( pic_t * )W_CacheLumpName( "backtile", PU_CACHE, Cvt_pic_t, 1 );
 		DrawTiledRegion( 0, 16, iGLOBAL_SCREENWIDTH, iGLOBAL_SCREENHEIGHT - 32, 0, 16, shape );

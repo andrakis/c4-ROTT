@@ -773,7 +773,7 @@ CP_MenuNames ExtOptionsNames[] =
    "JUMPING",
    "FULLSCREEN",
    "ACCELERATED",  // c4: the machine's accelerators (c4/accel.mjs)
-   "RESOLUTION"    // c4: 320x200, 640x480 or 800x600 (CP_ResolutionMenu)
+   "RESOLUTION"    // c4: 320x200 to 800x600, Duke3D's sizes (CP_ResolutionMenu)
    };
 CP_iteminfo ExtOptionsItems = { 20, MENU_Y, 7, 0, 43, ExtOptionsNames, mn_largefont };
 void CP_ResolutionMenu (void);   // c4
@@ -790,23 +790,34 @@ CP_itemtype ExtOptionsMenu[] =
 };
 
 #ifdef C4ROTT
-// c4: RESOLUTION's own menu, as Detail Levels' is: the port's three sizes,
-// the one in use marked, taking at once (rt_main.c, rott_set_resolution)
+// c4: RESOLUTION's own menu, as Detail Levels' is: the port's sizes
+// (winrott.c), Duke3D's, the one in use marked, taking at once (rt_main.c,
+// rott_set_resolution)
+#define NRESOLUTIONS 7
 CP_MenuNames ResolutionNames[] =
    {
    "320 X 200",
+   "320 X 240",
+   "400 X 300",
+   "512 X 384",
+   "640 X 400",
    "640 X 480",
    "800 X 600"
    };
-CP_iteminfo ResolutionItems = { 32, 64, 3, 0, 43, ResolutionNames, mn_largefont };
+CP_iteminfo ResolutionItems = { 32, MENU_Y + 16, NRESOLUTIONS, 0, 43, ResolutionNames, mn_largefont };
 CP_itemtype ResolutionMenu[] =
 {
    {1, "", '3', NULL},
+   {1, "", '3', NULL},
+   {1, "", '4', NULL},
+   {1, "", '5', NULL},
+   {1, "", '6', NULL},
    {1, "", '6', NULL},
    {1, "", '8', NULL}
 };
-static int ResolutionNums[3] = { 0, 1, 2 };
-static int resolution_w[3] = { 320, 640, 800 }, resolution_h[3] = { 200, 480, 600 };
+static int ResolutionNums[NRESOLUTIONS] = { 0, 1, 2, 3, 4, 5, 6 };
+static int resolution_w[NRESOLUTIONS] = { 320, 320, 400, 512, 640, 640, 800 };
+static int resolution_h[NRESOLUTIONS] = { 200, 240, 300, 384, 400, 480, 600 };
 #endif
    
 //bna added end
@@ -1583,6 +1594,15 @@ void SetUpControlPanel (void)
 
 
     
+#ifdef C4ROTT
+	  // c4: the sizes between (WinRott.h) and 320x240: 160 by 100 of
+	  // the whole screen, column by column, as the two below take theirs
+	  if (!ROTT_IS(320, 200) && iGLOBAL_SCREENWIDTH < 640) {
+		  for (i=0;i<160;i++)
+			  for (j=0;j<100;j++,s++)
+				 *s=*((byte *)bufferofs+(j*iGLOBAL_SCREENHEIGHT/100)*iGLOBAL_SCREENWIDTH+i*iGLOBAL_SCREENWIDTH/160);
+	  } else
+#endif
 	  if (iGLOBAL_SCREENWIDTH == 320) { 
 		  for (i=0;i<Xres;i+=2)	{	  
 			  b=(byte *)bufferofs+i;
@@ -5464,7 +5484,7 @@ void CP_ExtOptionsMenu (void)
 static int ResolutionNow (void)
 {
    int i;
-   for (i = 0; i < 3; i++)
+   for (i = 0; i < NRESOLUTIONS; i++)
       if (resolution_w[i] == iGLOBAL_SCREENWIDTH && resolution_h[i] == iGLOBAL_SCREENHEIGHT)
          return i;
    return -1;
@@ -5497,7 +5517,7 @@ void CP_ResolutionMenu (void)
    {
       which = HandleMenu (&ResolutionItems, &ResolutionMenu[0], NULL);
 
-      if (which >= 0 && which < 3 && which != ResolutionNow ())
+      if (which >= 0 && which < NRESOLUTIONS && which != ResolutionNow ())
       {
          rott_set_resolution (resolution_w[which], resolution_h[which]);
          DrawResolutionMenu ();

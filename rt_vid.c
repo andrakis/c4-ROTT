@@ -328,7 +328,7 @@ void DrawTiledRegion
 
 void VWB_DrawPic (int x, int y, pic_t *pic)
 {
-   if (((iGLOBAL_SCREENWIDTH > 320) && !StretchScreen) ||
+   if ((!ROTT_IS(320, 200) && !StretchScreen) ||
        VW_MarkUpdateBlock (x, y, x+(pic->width<<2)-1, y+(pic->height)-1))
       VL_MemToScreen ((byte *)&pic->data, pic->width, pic->height, x, y);
 }
@@ -405,7 +405,7 @@ void VL_Bar (int x, int y, int width, int height, int color)
 
 void VWB_Bar (int x, int y, int width, int height, int color)
 {
-   if (((iGLOBAL_SCREENWIDTH > 320) && !StretchScreen) ||
+   if ((!ROTT_IS(320, 200) && !StretchScreen) ||
        VW_MarkUpdateBlock (x,y,x+width,y+height-1) )
       VL_Bar (x, y, width, height, color);
 }

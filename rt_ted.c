@@ -1216,20 +1216,34 @@ void PreCache( void )
 			currentmem=(newheap*MAXLEDS)/maxheapsize;
          while (lastmem<=currentmem)
             {//SetTextMode (  );
-   			if ( iGLOBAL_SCREENWIDTH == 320) {
+   			if ( ROTT_IS(320, 200)) {
 				DrawNormalSprite (PRECACHEBARX+PRECACHELED1X+(lastmem<<2),
                               PRECACHEBARY+PRECACHELED1Y,
                               W_GetNumForName ("led1"));//led1 progressbar
-			}else if ( iGLOBAL_SCREENWIDTH == 640) {
+			}else if ( ROTT_IS(640, 480)) {
 				DrawNormalSprite (72+(Gs*(lastmem<<2)),446,W_GetNumForName ("led1"));//led1 progressbar
 				DrawNormalSprite (72+(Gs*(lastmem<<2)),446+3,W_GetNumForName ("led1"));//led1 progressbar
 				DrawNormalSprite (72+3+(Gs*(lastmem<<2)),446,W_GetNumForName ("led1"));//led1 progressbar
 				DrawNormalSprite (72+3+(Gs*(lastmem<<2)),446+3,W_GetNumForName ("led1"));//led1 progressbar
-			}else if ( iGLOBAL_SCREENWIDTH == 800) {
+			}else if ( ROTT_IS(800, 600)) {
 				DrawNormalSprite (91+(Gs*(lastmem<<2)),559,W_GetNumForName ("led1"));//led1 progressbar
 				DrawNormalSprite (91+(Gs*(lastmem<<2)),559+3,W_GetNumForName ("led1"));//led1 progressbar
 				DrawNormalSprite (91+3+(Gs*(lastmem<<2)),559,W_GetNumForName ("led1"));//led1 progressbar
 				DrawNormalSprite (91+3+(Gs*(lastmem<<2)),559+3,W_GetNumForName ("led1"));//led1 progressbar
+#ifdef C4ROTT
+			}else{
+				// c4: the sizes between (WinRott.h): where the bar's LEDs
+				// are on the 320x200 picture, stretched (EnableScreenStretch)
+				// to the screen, and from 640 across in fours, as there
+				int lx = (PRECACHEBARX+PRECACHELED1X)*iGLOBAL_SCREENWIDTH/320 + Gs*(lastmem<<2);
+				int ly = (PRECACHEBARY+PRECACHELED1Y)*iGLOBAL_SCREENHEIGHT/200;
+				DrawNormalSprite (lx,ly,W_GetNumForName ("led1"));
+				if (iGLOBAL_SCREENWIDTH >= 640) {
+					DrawNormalSprite (lx,ly+3,W_GetNumForName ("led1"));
+					DrawNormalSprite (lx+3,ly,W_GetNumForName ("led1"));
+					DrawNormalSprite (lx+3,ly+3,W_GetNumForName ("led1"));
+				}
+#endif
 			}
 
             lastmem++;
@@ -1239,21 +1253,35 @@ void PreCache( void )
          while (lastcache<=currentcache)
             {
 
-   			if ( iGLOBAL_SCREENWIDTH == 320) {
+   			if ( ROTT_IS(320, 200)) {
 				DrawNormalSprite (PRECACHEBARX+PRECACHELED2X+(lastcache<<2),
                               PRECACHEBARY+PRECACHELED2Y,
                               W_GetNumForName ("led2"));//led2 progressbar
-			}else if ( iGLOBAL_SCREENWIDTH == 640) {
+			}else if ( ROTT_IS(640, 480)) {
 				DrawNormalSprite (72+(Gs*(lastcache<<2)),458,W_GetNumForName ("led2"));//led2 progressbar
 				DrawNormalSprite (72+(Gs*(lastcache<<2)),458+3,W_GetNumForName ("led2"));//led2 progressbar
 				DrawNormalSprite (72+3+(Gs*(lastcache<<2)),458,W_GetNumForName ("led2"));//led2 progressbar
 				DrawNormalSprite (72+3+(Gs*(lastcache<<2)),458+3,W_GetNumForName ("led2"));//led2 progressbar
 			
-			}else if ( iGLOBAL_SCREENWIDTH == 800) {
+			}else if ( ROTT_IS(800, 600)) {
 				DrawNormalSprite (91+(Gs*(lastcache<<2)),573,W_GetNumForName ("led2"));//led2 progressbar
 				DrawNormalSprite (91+(Gs*(lastcache<<2)),573+3,W_GetNumForName ("led2"));//led2 progressbar
 				DrawNormalSprite (91+3+(Gs*(lastcache<<2)),573,W_GetNumForName ("led2"));//led2 progressbar
 				DrawNormalSprite (91+3+(Gs*(lastcache<<2)),573+3,W_GetNumForName ("led2"));//led2 progressbar
+#ifdef C4ROTT
+			}else{
+				// c4: the sizes between (WinRott.h): where the bar's LEDs
+				// are on the 320x200 picture, stretched (EnableScreenStretch)
+				// to the screen, and from 640 across in fours, as there
+				int lx = (PRECACHEBARX+PRECACHELED2X)*iGLOBAL_SCREENWIDTH/320 + Gs*(lastcache<<2);
+				int ly = (PRECACHEBARY+PRECACHELED2Y)*iGLOBAL_SCREENHEIGHT/200;
+				DrawNormalSprite (lx,ly,W_GetNumForName ("led2"));
+				if (iGLOBAL_SCREENWIDTH >= 640) {
+					DrawNormalSprite (lx,ly+3,W_GetNumForName ("led2"));
+					DrawNormalSprite (lx+3,ly,W_GetNumForName ("led2"));
+					DrawNormalSprite (lx+3,ly+3,W_GetNumForName ("led2"));
+				}
+#endif
 			}
 			DisableScreenStretch();//bna++
 			VW_UpdateScreen ();//bna++

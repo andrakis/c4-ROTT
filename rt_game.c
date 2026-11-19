@@ -464,6 +464,19 @@ void DrawPlayScreen (boolean bufferofsonly)
 		  shape = ( pic_t * )W_CacheLumpName( "stat_bar", PU_CACHE, Cvt_pic_t, 1 );
 		  GameMemToScreen( shape, 0, 0, bufferofsonly );
 	   }
+#ifdef C4ROTT
+	   else {
+		  // c4: 400 and 512 across (WinRott.h), as 640's: the bottom
+		  // bar's picture at the right edge, its bullet rubbed out, and
+		  // the bar's own over the rest
+		  shape = ( pic_t * ) W_CacheLumpName( "bottbar", PU_CACHE, Cvt_pic_t, 1 );
+		  GameMemToScreen( shape, iGLOBAL_SCREENWIDTH-320, 0, bufferofsonly );
+		  DrawPPic( iGLOBAL_SCREENWIDTH-20,1, 8 >> 2, 16,
+				 ( byte * )&erase->data, 2, true, bufferofsonly );
+		  shape = ( pic_t * )W_CacheLumpName( "stat_bar", PU_CACHE, Cvt_pic_t, 1 );
+		  GameMemToScreen( shape, 0, 0, bufferofsonly );
+	   }
+#endif
       }
 
    if ( BATTLEMODE )
@@ -493,7 +506,7 @@ void DrawPlayScreen (boolean bufferofsonly)
       //else 
          {
 
-			if (iGLOBAL_SCREENWIDTH == 640) {
+			if (ROTT_IS(640, 480)) {
 				  //bna fix - not to good? but no one has 286 any more
 				  //statusbar dosent cover hole screen, because its a lump picture width max 320
 				  //first write dummy shape and next over it
@@ -507,7 +520,7 @@ void DrawPlayScreen (boolean bufferofsonly)
 				 DrawPPic( 324, (224*2)+17-ShowKillsYoffset, 8 >> 2, 16,
 					 ( byte * )&erase->data, 2, true, bufferofsonly );
 
-			}else if (iGLOBAL_SCREENWIDTH == 800) {
+			}else if (ROTT_IS(800, 600)) {
 				 GameMemToScreen( shape, 800-320, 584-ShowKillsYoffset, bufferofsonly );
 				 //copy next shape to mem
 				 GameMemToScreen( shape, 300, 584-ShowKillsYoffset, bufferofsonly );
@@ -520,9 +533,26 @@ void DrawPlayScreen (boolean bufferofsonly)
 				 DrawPPic( 610, 584+1-ShowKillsYoffset, 8 >> 2, 16,
 					 ( byte * )&erase->data, 2, true, bufferofsonly );
 
-			}else{
+			}else if (ROTT_IS(320, 200)) {
 				 GameMemToScreen( shape, 0, 184, bufferofsonly );
 			}
+#ifdef C4ROTT
+			else {
+				 // c4: the sizes between (WinRott.h), as 640x480's: 16 from
+				 // the bottom, the picture at the right edge and at the
+				 // left, the left one's bullet rubbed out, and the right
+				 // one's heart where the left one leaves it showing
+				 int y = iGLOBAL_SCREENHEIGHT - 16 - ShowKillsYoffset;
+				 GameMemToScreen( shape, iGLOBAL_SCREENWIDTH-320, y, bufferofsonly );
+				 GameMemToScreen( shape, 0, y, bufferofsonly );
+				 if (iGLOBAL_SCREENWIDTH > 320)
+					 DrawPPic( 310, y+1, 8 >> 2, 16,
+						 ( byte * )&erase->data, 2, true, bufferofsonly );
+				 if (iGLOBAL_SCREENWIDTH - 316 >= 320)
+					 DrawPPic( iGLOBAL_SCREENWIDTH-316, y+1, 8 >> 2, 16,
+						 ( byte * )&erase->data, 2, true, bufferofsonly );
+			}
+#endif
          }
 
       DrawBarAmmo( bufferofsonly );
@@ -531,14 +561,20 @@ void DrawPlayScreen (boolean bufferofsonly)
       if ( demoplayback )
       {
 			 shape = ( pic_t * )W_CacheLumpName( "demo", PU_CACHE, Cvt_pic_t, 1 );
-			 if (iGLOBAL_SCREENWIDTH == 640) {
+			 if (ROTT_IS(640, 480)) {
 				 //DrawPPic( 148, 185, shape->width, shape->height,
 				 //   ( byte * )&shape->data, 1, true, bufferofsonly );bna
 				 DrawPPic( 148*2, 465, shape->width, shape->height,
 					( byte * )&shape->data, 1, true, bufferofsonly );
-			 }else if (iGLOBAL_SCREENWIDTH == 800) {
+			 }else if (ROTT_IS(800, 600)) {
 				 DrawPPic( 380, 585, shape->width, shape->height,
 					( byte * )&shape->data, 1, true, bufferofsonly );
+#ifdef C4ROTT
+			 }else if (!ROTT_IS(320, 200)) {
+				 // c4: the sizes between (WinRott.h): the middle, 15 up
+				 DrawPPic( iGLOBAL_SCREENWIDTH/2-12, iGLOBAL_SCREENHEIGHT-15, shape->width, shape->height,
+					( byte * )&shape->data, 1, true, bufferofsonly );
+#endif
 			 }else{
 					DrawPPic( 148, 185, shape->width, shape->height,
 					( byte * )&shape->data, 1, true, bufferofsonly );		

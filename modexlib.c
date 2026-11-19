@@ -685,10 +685,20 @@ void VL_DePlaneVGA (void)
 
 /* C version of rt_vh_a.asm */
 
+#ifdef C4ROTT
+// c4: the 320x200 picture to the display as it is, which scales it
+// (c4sdl.c), instead of stretched here: 0 where it cannot (a timedemo)
+int rott_show_small (SDL_Surface *s);
+static int smallshown;   // and it was, since the screen last had it stretched
+#endif
+
 void VH_UpdateScreen (void)
 { 	
 
 	if (StretchScreen){//bna++
+#ifdef C4ROTT
+		if (rott_show_small (unstretch_sdl_surface)) { smallshown = 1; return; }
+#endif
 		StretchMemPicture ();
 	}else{
 		DrawCenterAim ();
@@ -722,6 +732,9 @@ void XFlipPage ( void )
       bufferofs = page1start;
 #else
  	if (StretchScreen){//bna++
+#ifdef C4ROTT
+		if (rott_show_small (unstretch_sdl_surface)) { smallshown = 1; return; }
+#endif
 		StretchMemPicture ();
 	}else{
 		DrawCenterAim ();
@@ -738,7 +751,12 @@ void EnableScreenStretch(void)
 {
    int i,offset;
    
+#ifdef C4ROTT
+   // c4: every size but the original's, 320x240 too (WinRott.h)
+   if (ROTT_IS(320, 200) || StretchScreen) return;
+#else
    if (iGLOBAL_SCREENWIDTH <= 320 || StretchScreen) return;
+#endif
    
    if (unstretch_sdl_surface == NULL)
    {
@@ -759,7 +777,16 @@ void EnableScreenStretch(void)
 
 void DisableScreenStretch(void)
 {
+#ifdef C4ROTT
+   if (ROTT_IS(320, 200) || !StretchScreen) return;
+   // c4: the 320x200 picture went to the display as it is (c4sdl.c,
+   // rott_show_small): the screen has it stretched now, once, as every
+   // frame used to leave it there, for what is drawn over it next (the
+   // loading bar's lights, rt_ted.c's PreCache)
+   if (smallshown) { StretchMemPicture (); smallshown = 0; }
+#else
    if (iGLOBAL_SCREENWIDTH <= 320 || !StretchScreen) return;
+#endif
 	
    displayofs = sdl_surface->pixels +
 	(displayofs - (byte *)unstretch_sdl_surface->pixels);
@@ -812,7 +839,7 @@ void DrawCenterAim ()
 {
 	int x;
 	if (iG_aimCross && !GamePaused){
-		if (( ingame == true )&&(iGLOBAL_SCREENWIDTH>320)){
+		if (( ingame == true )&&!ROTT_IS(320, 200)){   // c4: 320x240 too
 			  if ((iG_playerTilt <0 )||(iG_playerTilt >iGLOBAL_SCREENHEIGHT/2)){
 					iG_playerTilt = -(2048 - iG_playerTilt);
 			  }

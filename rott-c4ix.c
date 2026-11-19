@@ -42,22 +42,26 @@ void rott_close_display(void) { udisplay_give(); }
 // desktop reads the one it was given when it next draws, and says so
 // (WIN_FRAME); until then a newer frame waits in the other, and only the
 // newest is sent. Keys come back in the display's own form, for c4sdl.c.
+// Each buffer keeps its frame's size: the menus' 320x200 (c4sdl.c,
+// rott_show_small) fits in buffers made for the screen, and the desktop
+// scales either to the window.
 static char *fbuf[2];
 static int *fpal[2];
-static int fw, fh, sent, waiting, pending, closed;
+static int fw[2], fh[2], cap, sent, waiting, pending, closed;
 
 int rott_win_open(int w, int h) {
 	int i;
-	fw = w; fh = h;
+	cap = w * h;
 	for (i = 0; i < 2; i++) {
-		fbuf[i] = (char *) calloc(w * h, 1);
+		fbuf[i] = (char *) calloc(cap, 1);
 		fpal[i] = (int *) calloc(256, sizeof(int));
 		if (!fbuf[i] || !fpal[i]) return 0;
+		fw[i] = w; fh[i] = h;
 	}
 	return win_open("Rise of the Triad");
 }
 static void send_frame(int b) {
-	win_fb(fbuf[b], fw, fh, fw, fpal[b]);
+	win_fb(fbuf[b], fw[b], fh[b], fw[b], fpal[b]);
 	win_present();
 	sent = b;
 	waiting = 1;
@@ -65,19 +69,20 @@ static void send_frame(int b) {
 void rott_win_draw(uint8_t *pixels, int w, int h, int pitch, uint32_t *palette) {
 	int b, y;
 	if (closed) return;
-	// another resolution (RESOLUTION, rt_menu.c): new buffers, once the
-	// desktop has drawn what it was given from the old ones
-	if (w != fw || h != fh) {
+	// a bigger resolution (RESOLUTION, rt_menu.c): bigger buffers, once
+	// the desktop has drawn what it was given from the old ones
+	if (w * h > cap) {
 		if (waiting) return;
 		for (b = 0; b < 2; b++) {
 			free(fbuf[b]);
 			if (!(fbuf[b] = (char *) calloc(w * h, 1))) { closed = 1; return; }
 		}
-		fw = w; fh = h; pending = 0;
+		cap = w * h; pending = 0;
 	}
 	b = waiting ? 1 - sent : sent;
 	for (y = 0; y < h; y++) memcpy(fbuf[b] + y * w, pixels + y * pitch, w);
 	memcpy(fpal[b], palette, 256 * sizeof(int));
+	fw[b] = w; fh[b] = h;
 	if (waiting) pending = 1;
 	else send_frame(b);
 }

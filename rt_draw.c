@@ -3103,6 +3103,16 @@ void StartupRotateBuffer ( int masked)
 
    //   RotatedImage=SafeMalloc(131072);org
    //RotatedImage=SafeMalloc(131072*8);
+#ifdef C4ROTT
+   // c4: the sizes between (WinRott.h) have 800x600's, 1024 rows of 1024
+   if (ROTT_IS(320, 200)) {
+		RotatedImage=SafeMalloc(131072);
+   }else if (ROTT_IS(640, 480)) {
+		RotatedImage=SafeMalloc(131072*4);
+   }else{
+		RotatedImage=SafeMalloc(131072*8);
+   }
+#else
    if (iGLOBAL_SCREENWIDTH == 320) {
 		RotatedImage=SafeMalloc(131072);
    }else if (iGLOBAL_SCREENWIDTH == 640) { 
@@ -3110,8 +3120,13 @@ void StartupRotateBuffer ( int masked)
    }else if (iGLOBAL_SCREENWIDTH == 800) { 
 		RotatedImage=SafeMalloc(131072*8);
    }
+#endif
 //SetupScreen(false);//used these 2 to test screen size
 //VW_UpdateScreen ();
+#ifdef C4ROTT
+   memset(RotatedImage, (masked==0) ? 0 : 0xff,
+          ROTT_IS(320, 200) ? 131072 : ROTT_IS(640, 480) ? 131072*4 : 131072*8);
+#else
    if (masked==0) {
 	   if (iGLOBAL_SCREENWIDTH == 320) {
 		  memset(RotatedImage,0,131072);
@@ -3130,10 +3145,11 @@ void StartupRotateBuffer ( int masked)
 		  memset(RotatedImage,0xff,131072*8);
 	   }
    }
+#endif
       //memset(RotatedImage,0xff,131072);//org
       //memset(RotatedImage,0xff,131072*8);
 
-      if ((masked == false)&&(iGLOBAL_SCREENWIDTH == 800)) {
+      if ((masked == false)&&ROTT_IS(800, 600)) {
 		DisableScreenStretch();
 		// SetTextMode (  );
 
@@ -3149,7 +3165,12 @@ void StartupRotateBuffer ( int masked)
 			   }
 			   //k+=512*2;
 		   }
+#ifdef C4ROTT
+	  // c4: 640x480's, and the sizes between (WinRott.h): row a at a+28 of 1024
+	  }else if ((masked == false)&&!ROTT_IS(320, 200)) {
+#else
 	  }else if ((masked == false)&&(iGLOBAL_SCREENWIDTH == 640)) {
+#endif
 		DisableScreenStretch();
 		k=(28*512);//14336;
 		   for (a=0;a<iGLOBAL_SCREENHEIGHT;a++){
@@ -3159,7 +3180,7 @@ void StartupRotateBuffer ( int masked)
 			   }
 		   }
 
-	  }else if ((masked == true)||(iGLOBAL_SCREENWIDTH == 320)) {
+	  }else if ((masked == true)||ROTT_IS(320, 200)) {
 #ifdef C4ROTT
 		  /* c4: a row at a time, memcpy being one instruction, MCPY */
 		  for (a=0;a<200;a++)
@@ -3313,24 +3334,32 @@ void DrawRotatedScreen(int cx, int cy, byte *destscreen, int angle, int scale, i
 //   c = c/2; //these values are to rotate degres or?
 //   s = s/2;
 //   xst & xct= start center values ;
-   if ((iGLOBAL_SCREENWIDTH == 320 )||(masked == true)) {
+   if (ROTT_IS(320, 200)||(masked == true)) {
 	   xst = (((-cx)*s)+(128<<16))-(cy*c);
 	   xct = (((-cx)*c)+(256<<16)+(1<<18)-(1<<16))+(cy*s);
    }
-   else if ((iGLOBAL_SCREENWIDTH == 640 )&&(masked == false)) {
+   else if (ROTT_IS(640, 480)&&(masked == false)) {
 	   xst = (((-cx)*s)+((268)<<16))-(cy*c);
 	   xct = (((-cx)*c)+((317)<<16)+(1<<18)-(1<<16))+(cy*s);
    }//y=268;x=317
-   else if ((iGLOBAL_SCREENWIDTH == 800 )&&(masked == false)) {
+   else if (ROTT_IS(800, 600)&&(masked == false)) {
 	   xst = (((-cx)*s)+((328)<<16))-(cy*c);
 	   xct = (((-cx)*c)+((397)<<16)+(1<<18)-(1<<16))+(cy*s);
    }//328 397
+#ifdef C4ROTT
+   else {
+	   // c4: the sizes between (WinRott.h), as 640x480's and 800x600's:
+	   // the screen's middle, its row (28 down) and column in the image
+	   xst = (((-cx)*s)+((iGLOBAL_SCREENHEIGHT/2+28)<<16))-(cy*c);
+	   xct = (((-cx)*c)+((iGLOBAL_SCREENWIDTH/2-3)<<16)+(1<<18)-(1<<16))+(cy*s);
+   }
+#endif
 
    mr_xstep=s;
    mr_ystep=c;
 
   
-   if ((iGLOBAL_SCREENWIDTH == 800)&&(masked==0)) {
+   if (ROTT_IS(800, 600)&&(masked==0)) {
         screen=destscreen+iGLOBAL_SCREENWIDTH;//bna aaaa fix
    }else{
 		screen=destscreen;
@@ -3730,6 +3759,11 @@ void UpdateScreenSaver ( void )
    if (ScreenSaver->pausetime<=0)
    {
       ScreenSaver->pausetime=PAUSETIME;
+#ifdef C4ROTT
+	  // c4: each size's, as the three below are: 3/4 across, 84% down
+	  ScreenSaver->pausex=RandomNumber ("pausex",0)%(iGLOBAL_SCREENWIDTH*3/4);
+	  ScreenSaver->pausey=RandomNumber ("pausey",0)%(iGLOBAL_SCREENHEIGHT*84/100);
+#else
 	  if (iGLOBAL_SCREENWIDTH == 320){
 		  ScreenSaver->pausex=RandomNumber ("pausex",0)%240;
 		  ScreenSaver->pausey=RandomNumber ("pausey",0)%168;
@@ -3740,6 +3774,7 @@ void UpdateScreenSaver ( void )
 		  ScreenSaver->pausex=RandomNumber ("pausex",0)%600;
 		  ScreenSaver->pausey=RandomNumber ("pausey",0)%504;
 	  }
+#endif
    }
    DrawPauseXY (ScreenSaver->pausex, ScreenSaver->pausey);
 
@@ -5928,7 +5963,7 @@ void DrawRotRow(int count, byte * dest, byte * src)
 	ecx = mr_yfrac;
 	edx = mr_xfrac;
 
-	if ((iGLOBAL_SCREENWIDTH == 320)||(iG_masked==true))  
+	if (ROTT_IS(320, 200)||(iG_masked==true))  
 	{
 #ifdef C4ROTT
 		if (count > 0 && ROTT_ACCEL() > 0) {   /* c4: c4/accel.mjs's RA_ROTROW */
@@ -5949,7 +5984,7 @@ void DrawRotRow(int count, byte * dest, byte * src)
 			edx += mr_xstep;
 			ecx += mr_ystep;
 		}
-	}else if (iGLOBAL_SCREENWIDTH == 640) {
+	}else if (ROTT_IS(640, 480)) {
 #ifdef C4ROTT
 		// c4: x below 512, y below 512*1.8 (921.6: 921 and less)
 		if (count > 0 && ROTT_ACCEL() > 0) {   /* c4: c4/accel.mjs's RA_ROTROW */
@@ -5970,7 +6005,7 @@ void DrawRotRow(int count, byte * dest, byte * src)
 			edx += mr_xstep;
 			ecx += mr_ystep;
 		}
-	}else if (iGLOBAL_SCREENWIDTH == 800) {
+	}else if (ROTT_IS(800, 600)) {
 
 
 
@@ -6020,6 +6055,29 @@ void DrawRotRow(int count, byte * dest, byte * src)
 	}
 
 	}
+#ifdef C4ROTT
+	else {
+		// c4: the sizes between (WinRott.h): as 640x480's, in all of the
+		// 1024 rows of 1024 their image has (StartupRotateBuffer)
+		if (count > 0 && ROTT_ACCEL() > 0) {   /* c4: c4/accel.mjs's RA_ROTROW */
+			rott_rotrow(count, mr_xfrac, mr_yfrac, mr_xstep, mr_ystep, src, dest, 0, 1024, 1024, 10);
+			return;
+		}
+		while (count--) {
+			eax = edx >> 16;
+			if (eax < 1024 && (ecx >> 16) < 1024) {
+				eax = (eax << 10) | ((ecx << 6) >> (32-10));
+			} else {
+				eax = 0;
+			}
+
+			*dest++ = src[eax];
+
+			edx += mr_xstep;
+			ecx += mr_ystep;
+		}
+	}
+#endif
 }
 
 void DrawMaskedRotRow(int count, byte * dest, byte * src)
