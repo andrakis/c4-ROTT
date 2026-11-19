@@ -123,7 +123,7 @@ Each is under `#ifdef C4ROTT`. Everything else is the port's own code.
 - **320x200**, the original's size, is the default (`winrott.c`). It is a
   fifth of the work of the port's 640x480; Extended User Options'
   RESOLUTION, a config or `RESOLUTION 640x480` on the command line can
-  ask for more ("Resolution", below).
+  ask for another of the port's sizes ("Resolution", below).
 - **`--timedemo N`** (`rt_main.c`): the title loop plays demo N at once and
   quits when it ends, and the start-up screens are skipped. The random
   tables' seed is the wall clock's second, so while timing it is 0
@@ -189,7 +189,20 @@ Each is under `#ifdef C4ROTT`. Everything else is the port's own code.
   back to it) and the weapon's scale, and the menus' own 320x200 view
   (`rt_build.c`); `c4sdl.c` asks the display to be the frame's size above
   640x480, and the windows take a frame of any size (`rott-c4ix.c`,
-  `rott-bare.c`).
+  `rott-bare.c`). The sizes between 320x200 and 800x600 are `WinRott.h`'s
+  `ROTT_IS` and `ROTT_OWN`: where the code has numbers for 320x200,
+  640x480 and 800x600 one by one (`winrott.c`, `rt_view.c`, `rt_draw.c`,
+  `rt_game.c`, `rt_ted.c`, `rt_menu.c`), the others get numbers worked
+  out from the size.
+- **The menus' 320x200 picture to the display as it is.** Above 320x200
+  the menus and the game's other screens draw in 320x200
+  (`EnableScreenStretch`), which `SDL_SoftStretch` made the screen's size
+  at every frame: 8 M instructions at 640x480, most of a menu's time.
+  `modexlib.c` hands the 320x200 to `c4sdl.c`'s `rott_show_small`
+  instead, and the display or window scales it. `DisableScreenStretch`
+  stretches it once, for what is drawn over it next (the loading bar's
+  lights). A timedemo still stretches, so its frames and checksum are as
+  they were.
 
 ## C4 bugs it found
 
@@ -277,15 +290,33 @@ checksum, so a frame a player sees is a fifth or less of what it was
 ### Resolution
 
 Options, Extended User Options, **RESOLUTION** opens a menu of the port's
-three sizes, 320x200 (the original's, and what the timedemos and tests
-are made at), 640x480 and 800x600, the one in use marked. A choice takes
-at once, in the menus or in a game; the config keeps it
-(`ScreenWidth`, `ScreenHeight`) where the disk takes writes, and
-`RESOLUTION 640x480` on the command line asks for one at the start. The
-display shows 320x200 and 640x480 at 640x480, and becomes 800x600 for
-800x600. The menus stay the original's 320x200, scaled. Bigger frames are
-more to draw, the accelerators' at every size (demo 4 gives gcc's frames
-at 640x480 and 800x600 too, with them and without).
+sizes, the ones Duke3D offers (`games/duke3d`'s `c4/duke-display.c`):
+320x200 (the original's, and what the timedemos and tests are made at),
+320x240, 400x300, 512x384, 640x400, 640x480 and 800x600, the one in use
+marked. A choice takes at once, in the menus or in a game; the config
+keeps it (`ScreenWidth`, `ScreenHeight`) where the disk takes writes, and
+`RESOLUTION 512x384` on the command line asks for one at the start. A
+config or command line naming another size gets 320x200. The display
+shows every size up to 640x480 at 640x480, and becomes 800x600 for
+800x600. 640x400 is 320x200 doubled, 16:10 on the 4:3 display as the
+original is; the others are drawn with square pixels.
+
+The menus stay the original's 320x200 at every size, as the DOS game's
+were, and are as quick at every size: the display scales them, where the
+game used to stretch them itself (a menu frame at 640x480 was 9.75 M
+instructions, 78% of it the stretch, and is 1.8 M). Bigger frames are
+more to draw in a game, the accelerators' at every size. Demo 4 gives
+gcc's frames at every size, with the accelerators and without:
+
+| Size | Checksum |
+|------|----------|
+| 320x200 | 4c959773 |
+| 320x240 | bcdfffff |
+| 400x300 | 48364a0f |
+| 512x384 | 7daec5ba |
+| 640x400 | 5c9d59bd |
+| 640x480 | 0af4e7eb |
+| 800x600 | 006c1c66 |
 
 ## Sound
 

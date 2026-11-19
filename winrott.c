@@ -38,6 +38,37 @@ extern int  viewwidth;
 
 //----------------------------------------------------------------------
 #define FINEANGLES                        2048
+
+#ifdef C4ROTT
+// c4: the port's sizes, as Duke3D's video modes (games/duke3d's
+// c4/duke-display.c): the RESOLUTION parameter, a config's ScreenWidth and
+// ScreenHeight and the menu (rt_menu.c) take these and no others
+static int rott_sizes[][2] = {
+	{320, 200}, {320, 240}, {400, 300}, {512, 384},
+	{640, 400}, {640, 480}, {800, 600}
+};
+int rott_size_ok (int w, int h)
+{
+	int i;
+	for (i = 0; i < 7; i++)
+		if (rott_sizes[i][0] == w && rott_sizes[i][1] == h)
+			return 1;
+	return 0;
+}
+
+// The weapon's height when a config has none (G_weaponscale, rt_view.c):
+// the original's 168, 640x480's 299 and 800x600's 376, and between them
+// as 320x200's on a 16:10 screen and 640x480's on a 4:3 one
+int rott_default_weaponscale (void)
+{
+	int w = iGLOBAL_SCREENWIDTH, h = iGLOBAL_SCREENHEIGHT;
+	if (w == 320) return 168;
+	if (w == 640 && h == 480) return 299;
+	if (w == 800) return 376;
+	if (h * 8 == w * 5) return 168 * w / 320;
+	return 299 * w / 640;
+}
+#endif
 void SetRottScreenRes (int Width, int Height) 
 {
 	
@@ -78,6 +109,21 @@ void SetRottScreenRes (int Width, int Height)
 	
 		dTopYZANGLELIMIT = (90*FINEANGLES/360);;
 	}
+#ifdef C4ROTT
+	// c4: the sizes between (WinRott.h). The view's height for the 4:3
+	// display: 160 at 320x200 and 640x400 (each 16:10 on it), 192 at the
+	// square-pixelled ones (640x480 and 800x600 have 180 and 200 of
+	// their own). The bars' numbers at the bottom, as 640x480's.
+	if (!ROTT_OWN) {
+		iGLOBAL_FOCALWIDTH = (Height * 256) / Width;
+		dGLOBAL_FPFOCALWIDTH = iGLOBAL_FOCALWIDTH;
+		iGLOBAL_HEALTH_X = (Width > 320) ? 40 : 20;
+		iGLOBAL_HEALTH_Y = Height - 15;
+		iGLOBAL_AMMO_X = (Width > 320) ? Width - 40 : 300;
+		iGLOBAL_AMMO_Y = Height - 16;
+		dTopYZANGLELIMIT = (42*FINEANGLES/360);
+	}
+#endif
 
 	//dYZANGLELIMIT = (12*FINEANGLES/360);
 	//#define YZANGLELIMIT  (12*FINEANGLES/360)//bna--(30*FINEANGLES/360)

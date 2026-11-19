@@ -212,6 +212,9 @@ void SetViewDelta ( void )
 	}else if ( iGLOBAL_SCREENWIDTH == 800) {
 		scale = (centerx*focalwidth)/(160);
 	}
+#ifdef C4ROTT
+	else scale = (centerx*focalwidth)/(160);   // c4: the sizes between (WinRott.h)
+#endif
 //
 // divide heightnumerator by a posts distance to get the posts height for
 // the heightbuffer.  The pixel height is height>>HEIGHTFRACTION
@@ -311,10 +314,26 @@ void SetViewSize
 	{
 	static int viewsizes320[MAXVIEWSIZES*2], kept;
 	if (!kept) { memcpy(viewsizes320, viewsizes, sizeof(viewsizes320)); kept = 1; }
-	if (iGLOBAL_SCREENWIDTH == 320) memcpy(viewsizes, viewsizes320, sizeof(viewsizes320));
+	if (ROTT_IS(320, 200)) memcpy(viewsizes, viewsizes320, sizeof(viewsizes320));
+	// the sizes between (WinRott.h): 320x200's smaller views made the
+	// screen's size, across in fours and down in twos, then the screen
+	// across, 32 and 16 short of its height for the bars, and all of it
+	if (!ROTT_OWN) {
+		int i;
+		for (i = 0; i < 7; i++) {
+			viewsizes[2*i] = (viewsizes320[2*i] * iGLOBAL_SCREENWIDTH / 320) & ~3;
+			viewsizes[2*i+1] = (viewsizes320[2*i+1] * iGLOBAL_SCREENHEIGHT / 200) & ~1;
+		}
+		for (i = 7; i < MAXVIEWSIZES; i++)
+			viewsizes[2*i] = iGLOBAL_SCREENWIDTH;
+		viewsizes[15] = iGLOBAL_SCREENHEIGHT - 32;
+		viewsizes[17] = iGLOBAL_SCREENHEIGHT - 16;
+		viewsizes[19] = iGLOBAL_SCREENHEIGHT;
+		viewsizes[21] = iGLOBAL_SCREENHEIGHT;
+	}
 	}
 #endif
-	if ( iGLOBAL_SCREENWIDTH == 640) {
+	if ( ROTT_IS(640, 480)) {
 		height = 0;//we use height as dummy cnt
 		viewsizes[height++]= 380; viewsizes[height++]= 336;
         viewsizes[height++]= 428; viewsizes[height++]= 352;
@@ -327,7 +346,7 @@ void SetViewSize
         viewsizes[height++]= 640; viewsizes[height++]= 464;
         viewsizes[height++]= 640; viewsizes[height++]= 480;
         viewsizes[height++]= 640; viewsizes[height++]= 480;
-	}else if ( iGLOBAL_SCREENWIDTH == 800) {
+	}else if ( ROTT_IS(800, 600)) {
 		height = 0;
 		viewsizes[height++]= 556; viewsizes[height++]= 488;
         viewsizes[height++]= 588; viewsizes[height++]= 504;
@@ -405,6 +424,11 @@ void SetViewSize
 		}else if ( iGLOBAL_SCREENWIDTH == 800) {
 			height = 360;
 		}
+#ifdef C4ROTT
+		else if ( iGLOBAL_SCREENWIDTH > 320) {
+			height = iGLOBAL_SCREENWIDTH * 260 / 640;   // c4: 400 and 512 across
+		}
+#endif
    }
 
    if ((G_weaponscale > 150)&&(G_weaponscale <600)){height = G_weaponscale;}

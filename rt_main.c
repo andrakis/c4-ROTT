@@ -865,10 +865,16 @@ void SetupWads( void )
             if (i < _argc)
             {
                int width, height;
+#ifdef C4ROTT
+               // c4: the port's sizes (winrott.c), Duke3D's
+               if ( (sscanf(_argv[i], "%dx%d", &width, &height) == 2) &&
+                    rott_size_ok (width, height) )
+#else
                if ( (sscanf(_argv[i], "%dx%d", &width, &height) == 2) &&
                     ( ( (width == 320) && (height == 200) ) ||
                       ( (width == 640) && (height == 480) ) ||
                       ( (width == 800) && (height == 600) ) ) )
+#endif
                {
                  iGLOBAL_SCREENWIDTH  = width;
                  iGLOBAL_SCREENHEIGHT = height;
@@ -1987,7 +1993,7 @@ void PauseLoop ( void )
       if (GamePaused==false)
          {
    			//bna++ section
-		  if (( playstate == ex_stillplaying )&&(iGLOBAL_SCREENWIDTH > 320)){
+		  if (( playstate == ex_stillplaying )&&!ROTT_IS(320, 200)){
 				pic_t *shape;
 				shape =  ( pic_t * )W_CacheLumpName( "backtile", PU_CACHE, Cvt_pic_t, 1 );
 				DrawTiledRegion( 0, 16, iGLOBAL_SCREENWIDTH, iGLOBAL_SCREENHEIGHT - 32, 0, 16, shape );
@@ -3435,8 +3441,8 @@ int PutBytes (unsigned char *ptr, unsigned int bytes)
 
 #ifdef C4ROTT
 // c4: Extended User Options' RESOLUTION (rt_menu.c), at once: the port's
-// own 320x200, 640x480 and 800x600, as a config's ScreenWidth and
-// ScreenHeight choose them at the start (kept in it when the game ends).
+// sizes (winrott.c), as a config's ScreenWidth and ScreenHeight choose
+// them at the start (kept in it when the game ends).
 // The screen made again, its tables, the view and the weapon's scale for
 // the size; the game draws the rest itself when the menu goes.
 void rott_video_reset (void);   // modexlib.c
@@ -3447,7 +3453,7 @@ void rott_set_resolution (int w, int h)
       return;
    rott_video_reset ();
    SetRottScreenRes (w, h);
-   G_weaponscale = (w == 320) ? 168 : (w == 640) ? 299 : 376;
+   G_weaponscale = rott_default_weaponscale ();
    VL_SetVGAPlaneMode ();
    SetViewSize (viewsize);
    rott_menubuf_resized ();

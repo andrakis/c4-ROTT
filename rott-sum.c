@@ -92,6 +92,7 @@ void rott_start(int *argc, char **argv) {
 int rott_headless(void) { return timing && !showing; }
 int rott_windowed(void) { return windowing; }
 int rott_timedemo(void) { return timing ? demo : 0; }
+int rott_timing(void) { return timing; }
 
 void rott_frame(uint8_t *pixels, int w, int h, int pitch, uint32_t *palette) {
 	int i, y;

@@ -21,6 +21,22 @@ extern double dGLOBAL_FPFOCALWIDTH;
 void EnableScreenStretch(void);
 void DisableScreenStretch(void);
 
+#ifndef ROTT_IS
+#ifdef C4ROTT
+// c4: the port's sizes (Extended User Options' RESOLUTION, rt_menu.c):
+// the original 320x200 and icculus.org's 640x480 and 800x600, which much
+// of the code has numbers for, one by one, and Duke3D's between them
+// (320x240, 400x300, 512x384, 640x400), which take numbers worked out
+// from the size (winrott.c, rt_view.c, rt_draw.c, rt_game.c, ...)
+#define ROTT_IS(w, h)  (iGLOBAL_SCREENWIDTH == (w) && iGLOBAL_SCREENHEIGHT == (h))
+#define ROTT_OWN       (ROTT_IS(320, 200) || ROTT_IS(640, 480) || ROTT_IS(800, 600))
+int rott_size_ok (int w, int h);
+int rott_default_weaponscale (void);
+#else
+#define ROTT_IS(w, h)  (iGLOBAL_SCREENWIDTH == (w))
+#endif
+#endif
+
 /*
 double dYZANGLELIMIT;
 
