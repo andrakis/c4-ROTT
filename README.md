@@ -75,7 +75,8 @@ make names lower case):
 | | its folder | then |
 |---|---|---|
 | C4IX (it has a `/home`) | `/home/rott/` | `/home/` |
-| the bare machine, C4DOS | `rott/` at drive 0's root (`A:\ROTT`) | drive 0's root |
+| the bare machine | `rott/` at drive 0's root | drive 0's root |
+| C4DOS (the page's, whose uploads are on B:, its home drive) | `rott/` in the home drive's current directory: `B:\ROTT` | `B:\` |
 
 Without `DARKWAR.WAD` it says what it wants and stops. Its demos are only
 the person's, from that folder: the shareware's `DEMO?_3.DMO` would not
