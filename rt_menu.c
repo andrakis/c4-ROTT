@@ -805,15 +805,18 @@ CP_MenuNames ResolutionNames[] =
    "800 X 600"
    };
 CP_iteminfo ResolutionItems = { 32, MENU_Y + 16, NRESOLUTIONS, 0, 43, ResolutionNames, mn_largefont };
+// No letters: the menus take a key's character from its scan code
+// (getASCII), and the arrows are the keypad's, Up 8 and Down 2, so a '8'
+// for 800x600 sent every Up there and nothing above it could be reached
 CP_itemtype ResolutionMenu[] =
 {
-   {1, "", '3', NULL},
-   {1, "", '3', NULL},
-   {1, "", '4', NULL},
-   {1, "", '5', NULL},
-   {1, "", '6', NULL},
-   {1, "", '6', NULL},
-   {1, "", '8', NULL}
+   {1, "", 0, NULL},
+   {1, "", 0, NULL},
+   {1, "", 0, NULL},
+   {1, "", 0, NULL},
+   {1, "", 0, NULL},
+   {1, "", 0, NULL},
+   {1, "", 0, NULL}
 };
 static int ResolutionNums[NRESOLUTIONS] = { 0, 1, 2, 3, 4, 5, 6 };
 static int resolution_w[NRESOLUTIONS] = { 320, 320, 400, 512, 640, 640, 800 };
@@ -5510,7 +5513,12 @@ void rott_set_resolution (int w, int h);   // rt_main.c
 void CP_ResolutionMenu (void)
 {
    int which;
+   int i;
 
+   // the cursor on the size in use (MN_GetCursorLocation takes the item
+   // marked so), not on the first
+   for (i = 0; i < NRESOLUTIONS; i++)
+      ResolutionMenu[i].active = (i == ResolutionNow ()) ? CP_CursorLocation : CP_Active;
    DrawResolutionMenu ();
 
    do
