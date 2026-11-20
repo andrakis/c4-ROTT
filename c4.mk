@@ -80,7 +80,11 @@ PHONY += rott-data
 # one under C4DOS after Doom: Doom turns the card's OPL3 mode on, where
 # al_midi.c's OPL2 voices are silent, and before the fix nothing turned
 # it back off, so ROTT's music (Duke3D's too) was silent until a reset.
+# And c4/menuwalk.mjs walks Extended User Options' RESOLUTION from
+# 320x200, 640x480 and 800x600 (the last two's menus scaled by the
+# display): Up through every size and past the top, Down past the bottom.
 ROTT_DEMO := 4
+ROTT_WALKS := 320x200 640x480 800x600
 # c4's port: ROTT's accelerators (c4/accel.mjs) against their loops, on the
 # bare machine, with libjs's own (cli.js loads them, docs/accel.md). In a
 # directory of its own: c4-images.sh links .rott/*.c4o into the game. The
@@ -124,6 +128,9 @@ test-rott: rott-data rott-host doom-data c4bb-images .rott/test/acceltest.c4r
 	     grep '^libjs: sound' .rott_t/$$w.err; exit 1; fi; done && \
 	 { m=$$(node libjs/tests/src/midi-notes.mjs .rott_t/gm.txt 1000 4) && echo "test-rott: General MIDI: $$m" \
 	   || { echo "test-rott: the General MIDI music did not play: $$m"; exit 1; }; } && \
+	 { for s in $(ROTT_WALKS); do node $(ROTT)/c4/menuwalk.mjs $$s > .rott_t/walk-$$s.txt 2>&1 & done; wait; } && \
+	 for s in $(ROTT_WALKS); do cat .rott_t/walk-$$s.txt; grep -q ': OK$$' .rott_t/walk-$$s.txt \
+	   || { echo "test-rott: RESOLUTION's menu does not walk"; exit 1; }; done && \
 	 { grep -A1 '^timedemo' .rott_t/dos.out | grep -Eq '^A(:\\)?>C4DOS version' \
 	   || { echo "test-rott: C4DOS did not come back to its prompt:"; tail -5 .rott_t/dos.out; exit 1; }; } && \
 	 rm -rf .rott_t && echo "test-rott: OK"

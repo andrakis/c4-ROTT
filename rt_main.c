@@ -3457,6 +3457,7 @@ void rott_set_resolution (int w, int h)
    VL_SetVGAPlaneMode ();
    SetViewSize (viewsize);
    rott_menubuf_resized ();
+   printf ("RESOLUTION: %dx%d\n", w, h);   // test-rott's menu walk (c4/menuwalk.mjs)
 }
 #endif
 

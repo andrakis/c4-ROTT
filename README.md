@@ -293,7 +293,10 @@ Options, Extended User Options, **RESOLUTION** opens a menu of the port's
 sizes, the ones Duke3D offers (`games/duke3d`'s `c4/duke-display.c`):
 320x200 (the original's, and what the timedemos and tests are made at),
 320x240, 400x300, 512x384, 640x400, 640x480 and 800x600, the one in use
-marked. A choice takes at once, in the menus or in a game; the config
+marked and the cursor on it. Up and Down go round the whole list; its
+items have no letters, since the menus read the arrows as the keypad's
+8 and 2 (test-rott walks it from three sizes, `c4/menuwalk.mjs`). A
+choice takes at once, in the menus or in a game; the config
 keeps it (`ScreenWidth`, `ScreenHeight`) where the disk takes writes, and
 `RESOLUTION 512x384` on the command line asks for one at the start. A
 config or command line naming another size gets 320x200. The display
