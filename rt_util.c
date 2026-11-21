@@ -642,9 +642,10 @@ int SafeOpenAppend (char *_filename)
 	, S_IREAD | S_IWRITE);
 
 #ifdef C4ROTT
-	// The bare machine's disk, C4DOS's and the page's take no writes:
-	// the config and saved games are then not kept, and the game goes on
-	// (SafeWrite skips a handle of -1). C4IX's take them.
+	// A file that cannot be written: the config and saved games are then
+	// not kept, and the game goes on (SafeWrite skips a handle of -1). The
+	// page keeps them: the bare machine writes to drive 1 (libc's bare.c),
+	// C4DOS to its home drive, B:, and C4IX to its disk.
 	if (handle == -1)
 		return -1;
 #endif
@@ -666,9 +667,10 @@ int SafeOpenWrite (char *_filename)
 	, S_IREAD | S_IWRITE);
 
 #ifdef C4ROTT
-	// The bare machine's disk, C4DOS's and the page's take no writes:
-	// the config and saved games are then not kept, and the game goes on
-	// (SafeWrite skips a handle of -1). C4IX's take them.
+	// A file that cannot be written: the config and saved games are then
+	// not kept, and the game goes on (SafeWrite skips a handle of -1). The
+	// page keeps them: the bare machine writes to drive 1 (libc's bare.c),
+	// C4DOS to its home drive, B:, and C4IX to its disk.
 	if (handle == -1)
 		return -1;
 #endif

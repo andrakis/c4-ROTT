@@ -21,7 +21,8 @@ was M13 ([docs/c4lc-design.md](../../docs/c4lc-design.md) 14.12).
 | C4IX, the whole display | `rott`, or Go > Games > Rise of the Triad; the desktop gives way until it ends (`include/display.h`) | `c4sdl.c`, `rott-c4ix.c` |
 | C4IX, a window | `rott --window` from a Terminal, which becomes the game's window (`include/window.h`), as `wolf3d --window`, `doom -window` and `tyrian --window` play; also when a program that does not give way has the display | `c4sdl.c`, `rott-c4ix.c` |
 | C4DOS | `ROTT` at the `A:\>` prompt; the page's `?system=c4dos` | `c4sdl.c`, `rott-bare.c` |
-| a grin window, under C4DOS | Program Manager's Games > Rise of the Triad, or `ROTT.C4R` in File Manager or a DOS Prompt, in grin (`?system=c4dos` boots into it) | `c4sdl.c`, `rott-bare.c`, through grin's table (below) |
+| grin, under C4DOS | Program Manager's Action Games > Rise of the Triad, full screen; `ROTT` in File Manager or a DOS Prompt plays as that item says (`?system=c4dos` boots into grin) | `c4sdl.c`, `rott-bare.c` |
+| a grin window, under C4DOS | an item of Program Manager's whose Properties say "DOS program, in a window" | `c4sdl.c`, `rott-bare.c`, through grin's table (below) |
 | the bare machine | `rott.c4r` as the machine's image; the page's `?system=rott` | `c4sdl.c`, `rott-bare.c` |
 
 On C4IX the game is in `/usr/games/rott` with the episode's files. It
@@ -31,8 +32,8 @@ files are on the games' disk beside it.
 
 The mouse is locked to the display from a click on it, and Esc lets it go
 (docs/libjs-design.md, `GUI_PTR_LOCK`). Its motion turns the player as
-SDL's relative motion did. In a C4IX window the game takes only the keys,
-as the other windowed games do.
+SDL's relative motion did. In a C4IX window the game takes only the keys:
+it does not ask for `win_lock`, as Tyrian's window does.
 
 Under grin, C4DOS's Windows 3.1-style shell (c4's `docs/grin-plan.md`,
 3.6), the display is grin's, and grin publishes a table in C4DOS's slot
@@ -66,7 +67,8 @@ Its files are the person's own, so no disk has them. Add `DARKWAR.WAD`,
 `DARKWAR.RTL` and `DARKWAR.RTC` (and `REMOTE1.RTS`, or the shareware's is
 used) with the page's **Uploads** (c4's libjs/README.md), in the folder
 `/home/rott` (in `/home` itself they play too), then start it: Go > Games >
-Rise of the Triad (your files) on C4IX, `ROTTREG` under C4DOS, or the
+Rise of the Triad (your files) on C4IX, `ROTTREG` under C4DOS (or
+Program Manager's Full Games (Uploads) > Rise of the Triad), or the
 page's `?system=rottreg` on the bare machine. `rott_data` (`rt_util.c`)
 finds the folder with `DARKWAR.WAD`, its own first, then `/home`, and
 takes each file from there, as it is spelt or in lower case (the Uploads
@@ -105,7 +107,7 @@ than the shareware.
 | file | what |
 |---|---|
 | icculus's units and headers | the game, with the changes below |
-| `c4/SDL.h`, `c4sdl.c` | the slice of SDL 1.2 the game calls: its 8-bit screen and palette sent as `GUI_BLIT8`, which the host scales to 640x480; the keyboard as SDL's keysyms; the mouse |
+| `c4/SDL.h`, `c4sdl.c` | the slice of SDL 1.2 the game calls: its 8-bit screen and palette sent as `GUI_BLIT8`, which the host scales to 640x480 (to 800x600 at 800x600); the keyboard as SDL's keysyms; the mouse |
 | `rott-snd.c` | the game's FX_ and MUSIC_ interfaces on libjs's sound card, in place of `fx_man.c` and `dukemusc.c` (SDL_mixer), which are not built; and the poll that runs the music |
 | `midi.c`, `al_midi.c`, `gmtimbre.c`, `ll_man.c`, `usrhooks.c` and their headers | five units of Apogee's `audiolib`: the MIDI player, the AdLib driver, its General MIDI timbre bank, and what they use |
 | `rott-sum.c` | what every platform shares: `--timedemo N` and `--window` off the command line, each frame shown checksummed with its palette, on a virtual clock |
@@ -142,10 +144,11 @@ Each is under `#ifdef C4ROTT`. Everything else is the port's own code.
   game measures it once from four frames. Paced, with the machine slower
   than its clock, libjs moves the clock on, and the measurement came out
   in the hundreds: each frame then took minutes, and a key went unseen.
-- **A disk that takes no writes**, as the bare machine's, C4DOS's and the
-  page's are: the config and saved games are not kept, and the game goes
-  on (`rt_util.c`, `rt_cfg.c`). `VENDOR.DOC` is not written back out of
-  the WAD (`rt_cfg.c`); the package's copy is on the disk.
+- **A file that cannot be written**: the config and saved games are not
+  kept, and the game goes on (`rt_util.c`, `rt_cfg.c`). The page keeps
+  them: the bare machine writes to drive 1, and C4DOS to its home drive,
+  B:. `VENDOR.DOC` is not written back out of the WAD (`rt_cfg.c`); the
+  package's copy is on the disk.
 
 - **The same frames with sound and without** ("Sound and the
   timedemo", below): the sounds' pitches have a random index of their
